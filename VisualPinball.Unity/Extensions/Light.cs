@@ -8,10 +8,11 @@ namespace VisualPinball.Unity.Extensions
 		{
 			var lightGameObject = new GameObject(vpxLight.Name);
 			var lightComp = lightGameObject.AddComponent<Light>();
+			lightGameObject.isStatic = true;
 
 			// Set color and position
 			lightComp.color = vpxLight.Data.Color.ToUnityColor();
-			lightComp.intensity = vpxLight.Data.Intensity;
+			lightComp.intensity = vpxLight.Data.Intensity/5f;
 			lightComp.range = vpxLight.Data.Falloff * 0.01f;
 
 			// Set the position (or any transform property)

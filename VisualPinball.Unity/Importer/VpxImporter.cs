@@ -120,13 +120,15 @@ namespace VisualPinball.Unity.Importer
 		private void ImportTextures(Table table)
 		{
 			foreach (var texture in table.Textures.Values) {
-				SaveTexture(texture);
+				 SaveTexture(texture);				
 			}
 
 			// also import local textures
 			foreach (var texture in Texture.LocalTextures) {
-				SaveTexture(texture);
+				SaveTexture(texture);				
 			}
+
+			
 		}
 
 		private void ImportGameItems(Table table, VpxAsset asset)
@@ -228,29 +230,33 @@ namespace VisualPinball.Unity.Importer
 				material = ro.Material?.ToUnityMaterial(ro) ?? new Material(Shader.Find("Standard"));
 				if (ro.Map != null) {
 					UnityEngine.Texture tex = LoadTexture(ro.Map, ".png");
-					string path = AssetDatabase.GetAssetPath(tex);
-					TextureImporter textureImporter = AssetImporter.GetAtPath(path) as TextureImporter;
-					textureImporter.textureType = TextureImporterType.Default;
-					textureImporter.alphaIsTransparency = true;
-					textureImporter.isReadable = true;
-					textureImporter.mipmapEnabled = true;
-					textureImporter.filterMode = FilterMode.Bilinear;
-					EditorUtility.CompressTexture(AssetDatabase.LoadAssetAtPath(path, typeof(Texture2D)) as Texture2D, TextureFormat.ARGB32, UnityEditor.TextureCompressionQuality.Best);
-					AssetDatabase.ImportAsset(path);
-					material.SetTexture(MainTex, tex);
+					if (tex != null) {
+						string path = AssetDatabase.GetAssetPath(tex);
+						TextureImporter textureImporter = AssetImporter.GetAtPath(path) as TextureImporter;
+						textureImporter.textureType = TextureImporterType.Default;
+						textureImporter.alphaIsTransparency = true;
+						textureImporter.isReadable = true;
+						textureImporter.mipmapEnabled = true;
+						textureImporter.filterMode = FilterMode.Bilinear;
+						EditorUtility.CompressTexture(AssetDatabase.LoadAssetAtPath(path, typeof(Texture2D)) as Texture2D, TextureFormat.ARGB32, UnityEditor.TextureCompressionQuality.Best);
+						AssetDatabase.ImportAsset(path);
+						material.SetTexture(MainTex, tex);
+					}
 				}
 
 				if (ro.NormalMap != null) {
 					UnityEngine.Texture tex = LoadTexture(ro.NormalMap, ".png");
-					string path = AssetDatabase.GetAssetPath(tex);
-					TextureImporter textureImporter = AssetImporter.GetAtPath(path) as TextureImporter;
-					textureImporter.textureType = TextureImporterType.NormalMap;
-					textureImporter.isReadable = true;
-					textureImporter.mipmapEnabled = true;
-					textureImporter.filterMode = FilterMode.Bilinear;
-					EditorUtility.CompressTexture(AssetDatabase.LoadAssetAtPath(path, typeof(Texture2D)) as Texture2D, TextureFormat.ARGB32, UnityEditor.TextureCompressionQuality.Best);
-					AssetDatabase.ImportAsset(path);
-					material.SetTexture(BumpMap, tex);
+					if (tex != null) {
+						string path = AssetDatabase.GetAssetPath(tex);
+						TextureImporter textureImporter = AssetImporter.GetAtPath(path) as TextureImporter;
+						textureImporter.textureType = TextureImporterType.NormalMap;
+						textureImporter.isReadable = true;
+						textureImporter.mipmapEnabled = true;
+						textureImporter.filterMode = FilterMode.Bilinear;
+						EditorUtility.CompressTexture(AssetDatabase.LoadAssetAtPath(path, typeof(Texture2D)) as Texture2D, TextureFormat.ARGB32, UnityEditor.TextureCompressionQuality.Best);
+						AssetDatabase.ImportAsset(path);
+						material.SetTexture(BumpMap, tex);
+					}
 
 
 					//---------------------------
@@ -264,8 +270,6 @@ namespace VisualPinball.Unity.Importer
 
 		private void SaveTexture(Texture texture)
 		{
-
-
 			UnityEngine.Texture2D tex;
 			if (!texture.IsHdr) {
 				tex = texture.ToUnityTexture();
@@ -274,8 +278,9 @@ namespace VisualPinball.Unity.Importer
 				Logger.Info("SaveTexture");
 				Logger.Info("tex.width  " + tex.width);
 				Logger.Info("tex.height  " + tex.height);
+				
 			}
-
+		
 
 			string path = "";
 			if (texture.IsHdr) {
@@ -315,6 +320,7 @@ namespace VisualPinball.Unity.Importer
 			} else {
 				_textures[texture.Name] = tex;
 			}
+			
 		}
 
 		private Texture2D LoadTexture(Texture texture,string extension)
