@@ -12,7 +12,7 @@ using VisualPinball.Unity.IO;
 using Logger = NLog.Logger;
 using Material = UnityEngine.Material;
 using Texture = VisualPinball.Engine.VPT.Texture;
-
+using System;
 namespace VisualPinball.Unity.Importer
 {
 
@@ -87,8 +87,7 @@ namespace VisualPinball.Unity.Importer
 			return rootGameObj;
 		}
 
-		private void Import(string path, bool saveToAssets)
-		{
+		private void Import(string path, bool saveToAssets) {
 			// parse table
 			var table = Table.Load(path);
 			gameObject.name = table.Name;
@@ -115,7 +114,16 @@ namespace VisualPinball.Unity.Importer
 			ImportGameItems(table, asset);
 
 			ImportGiLights(table);
+
+			//check for patches and run it
+			/*string s = Path.GetFileNameWithoutExtension(path);
+			string[] strippedName = s.Split(' ', '.', '&', '-', '.');
+			string ns = string.Join("", strippedName).ToUpper();
+			Logger.Info("strippedName "+ns);
+			gameObject.AddComponent(Type.GetType(ns));*/
+
 		}
+			
 
 		private void ImportTextures(Table table)
 		{

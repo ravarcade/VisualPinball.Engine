@@ -22,7 +22,7 @@ namespace VisualPinball.Unity.Extensions
 		public static UnityEngine.Material ToUnityMaterial(this VisualPinball.Engine.VPT.Material vpxMaterial, RenderObject ro) {
 			blendMode = BlendMode.Opaque;
 
-			if (ro.MaterialId ==  "Plastic with an image-plastics-clear" || ro.MaterialId =="BumperCap-bumpercap" || ro.MaterialId ==  "sides 99-sidecabL" || ro.MaterialId ==  "plastic coffin-coffinAO" || ro.MaterialId == "Plastic with opaque image 999-plastic_draca" || ro.MaterialId == "Playfield-MBX-pf" || ro.MaterialId == "plastic red flasher-dome_red" ||  ro.MaterialId == "Plastic White-coffindecal2"){
+			if (ro.MaterialId == "Plastic with opaque image 999-flasher plasticI" || ro.MaterialId ==  "ro.MaterialId ==" || ro.MaterialId ==  "Metal0.2-targetfrankytext-targetfrankynorm" || ro.MaterialId ==  "plastic ramps" || ro.MaterialId ==  "Plastic with opaque image 999-plastic_lane" || ro.MaterialId ==  "Plastic with an image-plastics-clear" || ro.MaterialId =="BumperCap-bumpercap" || ro.MaterialId ==  "sides 99-sidecabL" || ro.MaterialId ==  "plastic coffin-coffinAO" || ro.MaterialId == "Plastic with opaque image 999-plastic_draca" || ro.MaterialId == "Playfield-MBX-pf" || ro.MaterialId == "plastic red flasher-dome_red" ||  ro.MaterialId == "Plastic White-coffindecal2"){
 				Logger.Info("------------------------------------");
 				Logger.Info("------------------------------------");
 				//Logger.Info("material " + vpxMaterial.Name);
@@ -50,20 +50,36 @@ namespace VisualPinball.Unity.Extensions
 			UnityEngine.Material generatedUnityMaterial = new UnityEngine.Material(Shader.Find("Standard"));
 			generatedUnityMaterial.name = vpxMaterial.Name;
 			UnityEngine.Color col = vpxMaterial.BaseColor.ToUnityColor();
+			//we dont want bright or solid white colors , never good for CG , so check greyscale
+			if (col.r == col.g && col.g  == col.b) {
+				if (col.grayscale > 0.0) {
+					col.r = col.g = col.b = 0.8f;
+				}
+			}
 			generatedUnityMaterial.SetColor("_Color", col);
 			if (vpxMaterial.IsMetal)
 			{
 				generatedUnityMaterial.SetFloat("_Metallic", 1f);
 			}
 			generatedUnityMaterial.SetFloat("_Glossiness", vpxMaterial.Roughness);
-			if (vpxMaterial.IsOpacityActive) {
-				blendMode = BlendMode.Transparent;
-				col.a = vpxMaterial.Opacity;
-				generatedUnityMaterial.SetColor("_Color", col);
+			if (!vpxMaterial.IsOpacityActive) {
+				if (vpxMaterial.Edge < 1) {
+					blendMode = BlendMode.Cutout;				
+				}
+
+			}else if(vpxMaterial.IsOpacityActive) {
+				bool isCutout = false;
+				if (vpxMaterial.Edge < 1) {
+					blendMode = BlendMode.Cutout;
+					isCutout = true; 
+				}
+				if (vpxMaterial.Opacity < 0.9 && !isCutout) {
+					blendMode = BlendMode.Transparent;
+					col.a = vpxMaterial.Opacity;
+					generatedUnityMaterial.SetColor("_Color", col);
+				}				
 			}
-			if (vpxMaterial.Edge < 1) {
-				blendMode = BlendMode.Cutout;
-			}
+			
 
 
 			if (ro.NormalMap != null) {
