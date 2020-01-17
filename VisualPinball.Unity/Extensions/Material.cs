@@ -22,7 +22,7 @@ namespace VisualPinball.Unity.Extensions
 		public static UnityEngine.Material ToUnityMaterial(this VisualPinball.Engine.VPT.Material vpxMaterial, RenderObject ro) {
 			blendMode = BlendMode.Opaque;
 
-			if (ro.MaterialId == "Plastic with opaque image 999-flasher plasticI" || ro.MaterialId ==  "ro.MaterialId ==" || ro.MaterialId ==  "Metal0.2-targetfrankytext-targetfrankynorm" || ro.MaterialId ==  "plastic ramps" || ro.MaterialId ==  "Plastic with opaque image 999-plastic_lane" || ro.MaterialId ==  "Plastic with an image-plastics-clear" || ro.MaterialId =="BumperCap-bumpercap" || ro.MaterialId ==  "sides 99-sidecabL" || ro.MaterialId ==  "plastic coffin-coffinAO" || ro.MaterialId == "Plastic with opaque image 999-plastic_draca" || ro.MaterialId == "Playfield-MBX-pf" || ro.MaterialId == "plastic red flasher-dome_red" ||  ro.MaterialId == "Plastic White-coffindecal2"){
+			if (ro.MaterialId == "Plastic with an image-plastics-clear") {
 				Logger.Info("------------------------------------");
 				Logger.Info("------------------------------------");
 				//Logger.Info("material " + vpxMaterial.Name);
@@ -41,9 +41,8 @@ namespace VisualPinball.Unity.Extensions
 				Logger.Info("EdgeAlpha " + vpxMaterial.EdgeAlpha);
 				Logger.Info("------------------------------------");
 				Logger.Info("------------------------------------");
-			
-			}
 
+			}
 			
 
 
@@ -62,25 +61,57 @@ namespace VisualPinball.Unity.Extensions
 				generatedUnityMaterial.SetFloat("_Metallic", 1f);
 			}
 			generatedUnityMaterial.SetFloat("_Glossiness", vpxMaterial.Roughness);
+			bool isCutout = false;
+			bool isTransparent = false;
 			if (!vpxMaterial.IsOpacityActive) {
+				//opacity in VPX is not active but edge value is less than 1 so set cutout
 				if (vpxMaterial.Edge < 1) {
 					blendMode = BlendMode.Cutout;				
 				}
 
-			}else if(vpxMaterial.IsOpacityActive) {
-				bool isCutout = false;
+			}else {
+				//opacity is active  but edge value is less than 1 so set cutout and avoid setting transparency
 				if (vpxMaterial.Edge < 1) {
 					blendMode = BlendMode.Cutout;
 					isCutout = true; 
 				}
+
+				//opacity is active  and less than 90% and not set as cut out already
 				if (vpxMaterial.Opacity < 0.9 && !isCutout) {
 					blendMode = BlendMode.Transparent;
 					col.a = vpxMaterial.Opacity;
 					generatedUnityMaterial.SetColor("_Color", col);
-				}				
-			}
-			
+					isTransparent = true;
+				}
 
+				//opacity is active , not less than 90% not set to cutout or transparency already
+				//so validate the HasTranparentPixels calculated in this build , not a value from VPX
+				if (!isTransparent && !isCutout) {
+					if (ro.Map != null) {
+						if (ro.Map.HasTranparentPixels) {
+							//blendMode = BlendMode.Transparent; // tcauses to many uneeded draw calls .. 
+							blendMode = BlendMode.Cutout;
+							isTransparent = true;
+						}
+					}
+				}
+			}
+
+			//by now if nothing has set transparent or cutout
+			//then just validate the HasTranparentPixels property and make the default Cutout if true
+			if (!isTransparent && !isCutout) {
+				if (ro.Map != null) {
+					if (ro.Map.HasTranparentPixels) {
+						blendMode = BlendMode.Cutout;
+					}
+				} else {
+					//alpha values in colors were not being returned , i fixed that and so it would be set now in the shader
+					//if below theshold then set material to transparent.
+					if (col.a < 0.9f) {
+						blendMode = BlendMode.Transparent;
+					}
+				}
+			}
 
 			if (ro.NormalMap != null) {
 				generatedUnityMaterial.EnableKeyword("_NORMALMAP");

@@ -236,17 +236,17 @@ namespace VisualPinball.Unity.Importer
 			if (material == null) {
 
 				material = ro.Material?.ToUnityMaterial(ro) ?? new Material(Shader.Find("Standard"));
-				if (ro.Map != null) {
-					UnityEngine.Texture tex = LoadTexture(ro.Map, ".png");
+				if (ro.Map != null) {					
+					UnityEngine.Texture tex = LoadTexture(ro.Map, (ro.Map.HasTranparentPixels) ? ".png":".jpg");
 					if (tex != null) {
 						string path = AssetDatabase.GetAssetPath(tex);
 						TextureImporter textureImporter = AssetImporter.GetAtPath(path) as TextureImporter;
 						textureImporter.textureType = TextureImporterType.Default;
-						textureImporter.alphaIsTransparency = true;
+						textureImporter.alphaIsTransparency = ro.Map.HasTranparentPixels;
 						textureImporter.isReadable = true;
 						textureImporter.mipmapEnabled = true;
 						textureImporter.filterMode = FilterMode.Bilinear;
-						EditorUtility.CompressTexture(AssetDatabase.LoadAssetAtPath(path, typeof(Texture2D)) as Texture2D, TextureFormat.ARGB32, UnityEditor.TextureCompressionQuality.Best);
+						EditorUtility.CompressTexture(AssetDatabase.LoadAssetAtPath(path, typeof(Texture2D)) as Texture2D, (ro.Map.HasTranparentPixels)?TextureFormat.ARGB32: TextureFormat.RGB24, UnityEditor.TextureCompressionQuality.Best);
 						AssetDatabase.ImportAsset(path);
 						material.SetTexture(MainTex, tex);
 					}
@@ -282,20 +282,20 @@ namespace VisualPinball.Unity.Importer
 			if (!texture.IsHdr) {
 				tex = texture.ToUnityTexture();
 			} else {
-				tex = texture.ToUnityHDRTexture();
-				Logger.Info("SaveTexture");
-				Logger.Info("tex.width  " + tex.width);
-				Logger.Info("tex.height  " + tex.height);
+				tex = texture.ToUnityHDRTexture();				
 				
 			}
-		
+
+			texture.ValidateForTransparentPixels(tex);
+
+
 
 			string path = "";
 			if (texture.IsHdr) {
 				path = texture.GetUnityFilename(".exr", _textureFolder);
 
 			} else {
-				path = texture.GetUnityFilename(".png",_textureFolder);
+				path = texture.GetUnityFilename((texture.HasTranparentPixels)?".png":".jpg",_textureFolder);
 			}
 
 
@@ -320,7 +320,7 @@ namespace VisualPinball.Unity.Importer
 					RenderTexture.ReleaseTemporary(renderTex);
 					bytes = unCpmpressedImage.EncodeToEXR(Texture2D.EXRFlags.CompressZIP);
 				} else {
-					bytes = tex.EncodeToPNG();
+					bytes = (texture.HasTranparentPixels) ? tex.EncodeToPNG() : tex.EncodeToJPG();
 				}
 
 				File.WriteAllBytes(path, bytes);

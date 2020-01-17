@@ -17,6 +17,8 @@ namespace VisualPinball.Engine.VPT
 		public int Width => Data.Width;
 		public int Height => Data.Width;
 
+		public bool HasTranparentPixels = false;
+
 		public bool IsHdr
 		{
 			get {
