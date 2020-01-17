@@ -203,7 +203,7 @@ namespace VisualPinball.Unity.Importer
 			var mesh = renderObject.Mesh.ToUnityMesh($"{obj.name}_mesh");
 			obj.SetActive(renderObject.IsVisible);
 
-			CalculateTangents(mesh);
+			//CalculateTangents(mesh);
 
 			//resetgameObject origin
 			ResetGOOrigin(obj, mesh);
