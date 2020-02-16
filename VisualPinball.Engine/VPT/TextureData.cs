@@ -87,7 +87,8 @@ namespace VisualPinball.Engine.VPT
 
 		public override void Parse<T>(T obj, BinaryReader reader, int len)
 		{
-			if (obj is TextureData textureData) {
+			var textureData = obj as TextureData;
+			if (textureData != null) {
 				SetValue(obj, new BinaryData(reader, textureData.StorageName));
 			}
 		}
@@ -95,7 +96,8 @@ namespace VisualPinball.Engine.VPT
 		public override void Write<TItem>(TItem obj, BinaryWriter writer, HashWriter hashWriter)
 		{
 			if (Type == typeof(BinaryData)) {
-				if (!(GetValue(obj) is BinaryData data)) {
+				var data = GetValue(obj) as BinaryData;
+				if (data == null) {
 					return;
 				}
 				WriteStart(writer, 0, hashWriter);
@@ -113,7 +115,8 @@ namespace VisualPinball.Engine.VPT
 
 		public override void Parse<T>(T obj, BinaryReader reader, int len)
 		{
-			if (obj is TextureData textureData) {
+			var textureData = obj as TextureData;
+			if (textureData != null) {
 				SetValue(obj, new Bitmap(reader, textureData.Width, textureData.Height));
 			}
 		}
@@ -121,7 +124,8 @@ namespace VisualPinball.Engine.VPT
 		public override void Write<TItem>(TItem obj, BinaryWriter writer, HashWriter hashWriter)
 		{
 			if (Type == typeof(Bitmap)) {
-				if (!(GetValue(obj) is Bitmap bitmap)) {
+				var bitmap = GetValue(obj) as Bitmap;
+				if (bitmap == null) {
 					return;
 				}
 				WriteStart(writer, 0, hashWriter);

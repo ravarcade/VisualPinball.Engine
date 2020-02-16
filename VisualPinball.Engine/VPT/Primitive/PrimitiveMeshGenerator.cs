@@ -19,11 +19,11 @@ namespace VisualPinball.Engine.VPT.Primitive
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded = true, string parent = null)
 		{
-			var (preVertexMatrix, preNormalsMatrix) = GetPreMatrix(table, origin, asRightHanded);
+			var matrices = GetPreMatrix(table, origin, asRightHanded);
 			var postMatrix = GetPostMatrix(table, origin);
 			return new RenderObjectGroup(_data.Name, parent ?? "Primitives", postMatrix, new RenderObject(
 				_data.Name,
-				GetMesh(table).Transform(preVertexMatrix, preNormalsMatrix),
+				GetMesh(table).Transform(matrices.Item1, matrices.Item2),
 				new PbrMaterial(
 					table.GetMaterial(_data.Material),
 					table.GetTexture(_data.Image),

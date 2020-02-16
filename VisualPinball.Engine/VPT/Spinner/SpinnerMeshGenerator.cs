@@ -20,17 +20,17 @@ namespace VisualPinball.Engine.VPT.Spinner
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded)
 		{
-			var (preMatrix, _) = GetPreMatrix(table, origin, asRightHanded);
+			var matrices = GetPreMatrix(table, origin, asRightHanded);
 			var postMatrix = GetPostMatrix(table, origin);
 			return new RenderObjectGroup(_data.Name, "Spinners", postMatrix, new RenderObject(
 					"Plate",
-					SpinnerPlateMesh.Clone().Transform(preMatrix),
+					SpinnerPlateMesh.Clone().Transform(matrices.Item1),
 					new PbrMaterial(table.GetMaterial(_data.Material), table.GetTexture(_data.Image)),
 					_data.IsVisible
 				),
 				new RenderObject(
 					"Bracket",
-					SpinnerBracketMesh.Clone().Transform(preMatrix),
+					SpinnerBracketMesh.Clone().Transform(matrices.Item1),
 					new PbrMaterial(GetBracketMaterial(), table.GetTexture(_data.Image)),
 					_data.IsVisible && _data.ShowBracket
 				)

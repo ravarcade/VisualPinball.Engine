@@ -21,12 +21,13 @@ namespace VisualPinball.Engine.Test.VPT.Spinner
 		[Fact]
 		public void ShouldGenerateBracketMeshes()
 		{
-			string GetName(IRenderable item, Mesh mesh) => $"{item.Name}{mesh.Name}";
 			AssertObjMesh(_table, _obj, _table.Spinners["Spinner"], GetName);
 			AssertObjMesh(_table, _obj, _table.Spinners["Transformed"], GetName);
 			AssertObjMesh(_table, _obj, _table.Spinners["Surface"], GetName);
 			AssertObjMesh(_table, _obj, _table.Spinners["Data"], GetName, 0.001);
 		}
+
+		private static string GetName(IRenderable item, Mesh mesh) => $"{item.Name}{mesh.Name}";
 
 		[Fact]
 		public void ShouldGenerateMeshWithoutBracket()

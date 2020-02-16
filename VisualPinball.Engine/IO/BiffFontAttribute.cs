@@ -16,7 +16,8 @@ namespace VisualPinball.Engine.IO
 
 		public override void Write<TItem>(TItem obj, BinaryWriter writer, HashWriter hashWriter)
 		{
-			if (GetValue(obj) is Font font) {
+			var font = GetValue(obj) as Font;
+			if (font != null) {
 				WriteStart(writer, 0, hashWriter);
 				font.Write(writer, hashWriter);
 

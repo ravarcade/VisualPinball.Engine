@@ -23,17 +23,17 @@ namespace VisualPinball.Engine.VPT.Gate
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded)
 		{
-			var (preMatrix, _) = GetPreMatrix(table, origin, asRightHanded);
+			var matrices = GetPreMatrix(table, origin, asRightHanded);
 			var postMatrix = GetPostMatrix(table, origin);
 			return new RenderObjectGroup(_data.Name, "Gates", postMatrix, new RenderObject(
 					"Wire",
-					GetBaseMesh().Transform(preMatrix),
+					GetBaseMesh().Transform(matrices.Item1),
 					new PbrMaterial(table.GetMaterial(_data.Material)),
 					_data.IsVisible
 				),
 				new RenderObject(
 					"Bracket",
-					GateBracketMesh.Clone().Transform(preMatrix),
+					GateBracketMesh.Clone().Transform(matrices.Item1),
 					new PbrMaterial(table.GetMaterial(_data.Material)),
 					_data.IsVisible && _data.ShowBracket
 				)

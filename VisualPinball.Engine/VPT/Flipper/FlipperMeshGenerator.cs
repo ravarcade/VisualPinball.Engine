@@ -26,12 +26,12 @@ namespace VisualPinball.Engine.VPT.Flipper
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded = true)
 		{
 			var meshes = GenerateMeshes(table);
-			var (preVertexMatrix, preNormalsMatrix) = GetPreMatrix(table, origin, asRightHanded);
+			var matrices = GetPreMatrix(table, origin, asRightHanded);
 			var postMatrix = GetPostMatrix(table, origin);
 			var renderObjects = new List<RenderObject> {
 				new RenderObject(
 					"Base",
-					meshes["Base"].Transform(preVertexMatrix, preNormalsMatrix),
+					meshes["Base"].Transform(matrices.Item1, matrices.Item2),
 					new PbrMaterial(table.GetMaterial(_data.Material), table.GetTexture(_data.Image)),
 					_data.IsVisible
 				)
@@ -40,7 +40,7 @@ namespace VisualPinball.Engine.VPT.Flipper
 			if (meshes.ContainsKey("Rubber")) {
 				renderObjects.Add(new RenderObject(
 					name: "Rubber",
-					mesh: meshes["Rubber"].Transform(preVertexMatrix, preNormalsMatrix),
+					mesh: meshes["Rubber"].Transform(matrices.Item1, matrices.Item2),
 					material: new PbrMaterial(table.GetMaterial(_data.RubberMaterial)),
 					isVisible: _data.IsVisible
 				));

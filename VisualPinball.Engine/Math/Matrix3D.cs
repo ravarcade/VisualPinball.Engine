@@ -175,68 +175,83 @@ namespace VisualPinball.Engine.Math
 		}
 
 		private float _11 {
-			get => _matrix[0][0];
-			set => _matrix[0][0] = value;
+			get { return _matrix[0][0]; }
+			set { _matrix[0][0] = value; }
 		}
+
 		private float _12 {
-			get => _matrix[1][0];
-			set => _matrix[1][0] = value;
+			get { return _matrix[1][0]; }
+			set { _matrix[1][0] = value; }
 		}
+
 		private float _13 {
-			get => _matrix[2][0];
-			set => _matrix[2][0] = value;
+			get { return _matrix[2][0]; }
+			set { _matrix[2][0] = value; }
 		}
+
 		private float _14 {
-			get => _matrix[3][0];
-			set => _matrix[3][0] = value;
+			get { return _matrix[3][0]; }
+			set { _matrix[3][0] = value; }
 		}
+
 		private float _21 {
-			get => _matrix[0][1];
-			set => _matrix[0][1] = value;
+			get { return _matrix[0][1]; }
+			set { _matrix[0][1] = value; }
 		}
+
 		private float _22 {
-			get => _matrix[1][1];
-			set => _matrix[1][1] = value;
+			get { return _matrix[1][1]; }
+			set { _matrix[1][1] = value; }
 		}
+
 		private float _23 {
-			get => _matrix[2][1];
-			set => _matrix[2][1] = value;
+			get { return _matrix[2][1]; }
+			set { _matrix[2][1] = value; }
 		}
+
 		private float _24 {
-			get => _matrix[3][1];
-			set => _matrix[3][1] = value;
+			get { return _matrix[3][1]; }
+			set { _matrix[3][1] = value; }
 		}
+
 		private float _31 {
-			get => _matrix[0][2];
-			set => _matrix[0][2] = value;
+			get { return _matrix[0][2]; }
+			set { _matrix[0][2] = value; }
 		}
+
 		private float _32 {
-			get => _matrix[1][2];
-			set => _matrix[1][2] = value;
+			get { return _matrix[1][2]; }
+			set { _matrix[1][2] = value; }
 		}
+
 		private float _33 {
-			get => _matrix[2][2];
-			set => _matrix[2][2] = value;
+			get { return _matrix[2][2]; }
+			set { _matrix[2][2] = value; }
 		}
+
 		private float _34 {
-			get => _matrix[3][2];
-			set => _matrix[3][2] = value;
+			get { return _matrix[3][2]; }
+			set { _matrix[3][2] = value; }
 		}
+
 		private float _41 {
-			get => _matrix[0][3];
-			set => _matrix[0][3] = value;
+			get { return _matrix[0][3]; }
+			set { _matrix[0][3] = value; }
 		}
+
 		private float _42 {
-			get => _matrix[1][3];
-			set => _matrix[1][3] = value;
+			get { return _matrix[1][3]; }
+			set { _matrix[1][3] = value; }
 		}
+
 		private float _43 {
-			get => _matrix[2][3];
-			set => _matrix[2][3] = value;
+			get { return _matrix[2][3]; }
+			set { _matrix[2][3] = value; }
 		}
+
 		private float _44 {
-			get => _matrix[3][3];
-			set => _matrix[3][3] = value;
+			get { return _matrix[3][3]; }
+			set { _matrix[3][3] = value; }
 		}
 	}
 }

@@ -201,7 +201,8 @@ namespace VisualPinball.Engine.VPT.Primitive
 
 		public override void Parse<T>(T obj, BinaryReader reader, int len)
 		{
-			if (obj is PrimitiveData primitiveData) {
+			var primitiveData = obj as PrimitiveData;
+			if (primitiveData != null) {
 				try {
 					ParseVertices(primitiveData, IsCompressed
 						? BiffZlib.Decompress(reader.ReadBytes(len))
@@ -214,7 +215,8 @@ namespace VisualPinball.Engine.VPT.Primitive
 
 		public override void Write<TItem>(TItem obj, BinaryWriter writer, HashWriter hashWriter)
 		{
-			if (obj is PrimitiveData primitiveData) {
+			var primitiveData = obj as PrimitiveData;
+			if (primitiveData != null) {
 				if (!primitiveData.Use3DMesh) {
 					// don't write vertices if not using 3d mesh
 					return;
@@ -240,7 +242,8 @@ namespace VisualPinball.Engine.VPT.Primitive
 				throw new ArgumentOutOfRangeException($"Tried to read {data.NumVertices} vertices for primitive item \"${data.Name}\" (${data.StorageName}), but only ${bytes.Length} bytes available.");
 			}
 
-			if (!(GetValue(data) is Mesh mesh)) {
+			var mesh = GetValue(data) as Mesh;
+			if (mesh == null) {
 				throw new ArgumentException("BiffVertices attribute must sit on a Mesh object.");
 			}
 
@@ -281,8 +284,9 @@ namespace VisualPinball.Engine.VPT.Primitive
 
 		public override void Parse<T>(T obj, BinaryReader reader, int len)
 		{
-			if (obj is PrimitiveData tableData) {
-				ParseIndices(tableData, IsCompressed
+			var primitiveData = obj as PrimitiveData;
+			if (primitiveData != null) {
+				ParseIndices(primitiveData, IsCompressed
 					? BiffZlib.Decompress(reader.ReadBytes(len))
 					: reader.ReadBytes(len));
 			}
@@ -290,7 +294,8 @@ namespace VisualPinball.Engine.VPT.Primitive
 
 		public override void Write<TItem>(TItem obj, BinaryWriter writer, HashWriter hashWriter)
 		{
-			if (obj is PrimitiveData primitiveData) {
+			var primitiveData = obj as PrimitiveData;
+			if (primitiveData != null) {
 				if (!primitiveData.Use3DMesh) {
 					return;
 				}
@@ -311,7 +316,8 @@ namespace VisualPinball.Engine.VPT.Primitive
 				throw new ArgumentOutOfRangeException($"Cannot add indices when size is unknown.");
 			}
 
-			if (!(GetValue(data) is Mesh mesh)) {
+			var mesh = GetValue(data) as Mesh;
+			if (mesh == null) {
 				throw new ArgumentException("BiffIndices attribute must sit on a Mesh object.");
 			}
 

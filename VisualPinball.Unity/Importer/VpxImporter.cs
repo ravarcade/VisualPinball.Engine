@@ -152,19 +152,19 @@ namespace VisualPinball.Unity.Importer
 			}
 
 			// add unity component
-			switch (item) {
-				case Bumper bumper: obj.AddComponent<VisualPinballBumper>().SetData(bumper.Data); break;
-				case Flipper flipper: obj.AddComponent<VisualPinballFlipper>().SetData(flipper.Data); break;
-				case Gate gate: obj.AddComponent<VisualPinballGate>().SetData(gate.Data); break;
-				case HitTarget hitTarget: obj.AddComponent<VisualPinballHitTarget>().SetData(hitTarget.Data); break;
-				case Kicker kicker: obj.AddComponent<VisualPinballKicker>().SetData(kicker.Data); break;
-				case Primitive primitive: obj.AddComponent<VisualPinballPrimitive>().SetData(primitive.Data); break;
-				case Ramp ramp: obj.AddComponent<VisualPinballRamp>().SetData(ramp.Data); break;
-				case Rubber rubber: obj.AddComponent<VisualPinballRubber>().SetData(rubber.Data); break;
-				case Spinner spinner: obj.AddComponent<VisualPinballSpinner>().SetData(spinner.Data); break;
-				case Surface surface: obj.AddComponent<VisualPinballSurface>().SetData(surface.Data); break;
-				case Trigger trigger: obj.AddComponent<VisualPinballTrigger>().SetData(trigger.Data); break;
-			}
+			// switch (item) {
+			// 	case Bumper bumper: obj.AddComponent<VisualPinballBumper>().SetData(bumper.Data); break;
+			// 	case Flipper flipper: obj.AddComponent<VisualPinballFlipper>().SetData(flipper.Data); break;
+			// 	case Gate gate: obj.AddComponent<VisualPinballGate>().SetData(gate.Data); break;
+			// 	case HitTarget hitTarget: obj.AddComponent<VisualPinballHitTarget>().SetData(hitTarget.Data); break;
+			// 	case Kicker kicker: obj.AddComponent<VisualPinballKicker>().SetData(kicker.Data); break;
+			// 	case Primitive primitive: obj.AddComponent<VisualPinballPrimitive>().SetData(primitive.Data); break;
+			// 	case Ramp ramp: obj.AddComponent<VisualPinballRamp>().SetData(ramp.Data); break;
+			// 	case Rubber rubber: obj.AddComponent<VisualPinballRubber>().SetData(rubber.Data); break;
+			// 	case Spinner spinner: obj.AddComponent<VisualPinballSpinner>().SetData(spinner.Data); break;
+			// 	case Surface surface: obj.AddComponent<VisualPinballSurface>().SetData(surface.Data); break;
+			// 	case Trigger trigger: obj.AddComponent<VisualPinballTrigger>().SetData(trigger.Data); break;
+			// }
 		}
 
 		private void ImportRenderObject(IRenderable item, RenderObject ro, GameObject obj)

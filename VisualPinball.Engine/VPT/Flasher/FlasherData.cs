@@ -26,8 +26,16 @@ namespace VisualPinball.Engine.VPT.Flasher
 		[BiffFloat("FHEI", Pos = 1)]
 		public float Height = 50.0f;
 
-		[BiffFloat("FLAX", Pos = 2)] public float PosX { set => Center.X = value; get => Center.X; }
-		[BiffFloat("FLAY", Pos = 3)] public float PosY { set => Center.Y = value; get => Center.Y; }
+		[BiffFloat("FLAX", Pos = 2)] public float PosX {
+			set { Center.X = value; }
+			get { return Center.X; }
+		}
+
+		[BiffFloat("FLAY", Pos = 3)] public float PosY {
+			set { Center.Y = value; }
+			get { return Center.Y; }
+		}
+
 		public Vertex2D Center = new Vertex2D();
 
 		[BiffFloat("FROX", Pos = 4)]

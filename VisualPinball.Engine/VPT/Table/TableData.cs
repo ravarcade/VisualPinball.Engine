@@ -156,9 +156,10 @@ namespace VisualPinball.Engine.VPT.Table
 
 		[BiffInt("LZDI", Pos = 76)]
 		public int Light0Emission {
-			set => Light[0].Emission = new Color(value, ColorFormat.Bgr);
-			get => Light[0].Emission.Bgr;
+			set { Light[0].Emission = new Color(value, ColorFormat.Bgr); }
+			get { return Light[0].Emission.Bgr; }
 		}
+
 		public LightSource[] Light = { new LightSource() };
 
 		[BiffFloat("LZHI", Pos = 77)]
@@ -371,7 +372,8 @@ namespace VisualPinball.Engine.VPT.Table
 
 		public override void Parse<T>(T obj, BinaryReader reader, int len)
 		{
-			if (obj is TableData tableData) {
+			var tableData = obj as TableData;
+			if (tableData != null) {
 				if (IsPhysics) {
 					ParsePhysicsMaterial(tableData, reader, len);
 				} else {
@@ -384,7 +386,8 @@ namespace VisualPinball.Engine.VPT.Table
 
 		public override void Write<TItem>(TItem obj, BinaryWriter writer, HashWriter hashWriter)
 		{
-			if (!(GetValue(obj) is Material[] materials)) {
+			var materials = GetValue(obj) as Material[];
+			if (materials == null) {
 				return;
 			}
 			using (var stream = new MemoryStream())
@@ -422,7 +425,8 @@ namespace VisualPinball.Engine.VPT.Table
 				throw new ArgumentOutOfRangeException($"Cannot parse {tableData.NumMaterials} physics materials of {tableData.NumMaterials * PhysicsMaterialData.Size} bytes from a {len} bytes buffer.");
 			}
 
-			if (!(GetValue(tableData) is Material[] materials)) {
+			var materials = GetValue(tableData) as Material[];
+			if (materials == null) {
 				throw new ArgumentException("Materials must be loaded before physics properties!");
 			}
 			for (var i = 0; i < tableData.NumMaterials; i++) {

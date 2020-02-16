@@ -57,13 +57,13 @@ namespace VisualPinball.Engine.Math
 
 		internal CatmullCurve2D(Vertex2D v0, Vertex2D v1, Vertex2D v2, Vertex2D v3)
 		{
-			var (dt0, dt1, dt2) = Clamp(
+			var dt = Clamp(
 				MathF.Sqrt(v1.Clone().Sub(v0).Length()),
 				MathF.Sqrt(v2.Clone().Sub(v1).Length()),
 				MathF.Sqrt(v3.Clone().Sub(v2).Length())
 			);
-			_c.X = InitNonuniformCatmullCoeffs(v0.X, v1.X, v2.X, v3.X, dt0, dt1, dt2);
-			_c.Y = InitNonuniformCatmullCoeffs(v0.Y, v1.Y, v2.Y, v3.Y, dt0, dt1, dt2);
+			_c.X = InitNonuniformCatmullCoeffs(v0.X, v1.X, v2.X, v3.X, dt.Item1, dt.Item2, dt.Item3);
+			_c.Y = InitNonuniformCatmullCoeffs(v0.Y, v1.Y, v2.Y, v3.Y, dt.Item1, dt.Item2, dt.Item3);
 		}
 
 		public override RenderVertex2D GetPointAt(float t)
@@ -82,14 +82,14 @@ namespace VisualPinball.Engine.Math
 		private readonly Coeff3 _c = new Coeff3();
 
 		internal CatmullCurve3D(Vertex3D v0, Vertex3D v1, Vertex3D v2, Vertex3D v3) {
-			var (dt0, dt1, dt2) = Clamp(
+			var dt = Clamp(
 				MathF.Sqrt(v1.Clone().Sub(v0).Length()),
 				MathF.Sqrt(v2.Clone().Sub(v1).Length()),
 				MathF.Sqrt(v3.Clone().Sub(v2).Length())
 			);
-			_c.X = InitNonuniformCatmullCoeffs(v0.X, v1.X, v2.X, v3.X, dt0, dt1, dt2);
-			_c.Y = InitNonuniformCatmullCoeffs(v0.Y, v1.Y, v2.Y, v3.Y, dt0, dt1, dt2);
-			_c.Z = InitNonuniformCatmullCoeffs(v0.Z, v1.Z, v2.Z, v3.Z, dt0, dt1, dt2);
+			_c.X = InitNonuniformCatmullCoeffs(v0.X, v1.X, v2.X, v3.X, dt.Item1, dt.Item2, dt.Item3);
+			_c.Y = InitNonuniformCatmullCoeffs(v0.Y, v1.Y, v2.Y, v3.Y, dt.Item1, dt.Item2, dt.Item3);
+			_c.Z = InitNonuniformCatmullCoeffs(v0.Z, v1.Z, v2.Z, v3.Z, dt.Item1, dt.Item2, dt.Item3);
 		}
 
 		public override RenderVertex3D GetPointAt(float t) {

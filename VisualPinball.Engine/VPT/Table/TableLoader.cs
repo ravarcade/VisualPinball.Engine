@@ -92,7 +92,8 @@ namespace VisualPinball.Engine.VPT.Table
 		{
 			for (var i = 0; i < table.Data.NumGameItems; i++) {
 				var itemName = $"GameItem{i}";
-				storage.TryGetStream(itemName, out var itemStream);
+				CFStream itemStream;
+				storage.TryGetStream(itemName, out itemStream);
 				if (itemStream == null) {
 					Logger.Warn("Could not find stream {0}, skipping.", itemName);
 					continue;
@@ -208,7 +209,8 @@ namespace VisualPinball.Engine.VPT.Table
 		{
 			for (var i = 0; i < table.Data.NumTextures; i++) {
 				var textureName = $"Image{i}";
-				storage.TryGetStream(textureName, out var textureStream);
+				CFStream textureStream;
+				storage.TryGetStream(textureName, out textureStream);
 				if (textureStream == null) {
 					Logger.Warn("Could not find stream {0}, skipping.", textureName);
 					continue;
@@ -231,7 +233,8 @@ namespace VisualPinball.Engine.VPT.Table
 		{
 			for (var i = 0; i < table.Data.NumCollections; i++) {
 				var collectionName = $"Collection{i}";
-				storage.TryGetStream(collectionName, out var collectionStream);
+				CFStream collectionStream;
+				storage.TryGetStream(collectionName, out collectionStream);
 				if (collectionStream == null) {
 					Logger.Warn("Could not find stream {0}, skipping.", collectionName);
 					continue;
@@ -248,7 +251,8 @@ namespace VisualPinball.Engine.VPT.Table
 		{
 			for (var i = 0; i < table.Data.NumSounds; i++) {
 				var soundName = $"Sound{i}";
-				storage.TryGetStream(soundName, out var soundStream);
+				CFStream soundStream;
+				storage.TryGetStream(soundName, out soundStream);
 				if (soundStream == null) {
 					Logger.Warn("Could not find stream {0}, skipping.", soundName);
 					continue;
@@ -266,7 +270,8 @@ namespace VisualPinball.Engine.VPT.Table
 		{
 			// first, although we can loop through entries, get them from the game storage, so we
 			// know their order, which is important when writing back (because you know, hashing).
-			gameStorage.TryGetStream("CustomInfoTags", out var citStream);
+			CFStream citStream;
+			gameStorage.TryGetStream("CustomInfoTags", out citStream);
 			if (citStream != null) {
 				using (var stream = new MemoryStream(citStream.GetData()))
 				using (var reader = new BinaryReader(stream)) {
@@ -275,7 +280,8 @@ namespace VisualPinball.Engine.VPT.Table
 			}
 
 			// now actually read them in
-			rootStorage.TryGetStorage("TableInfo", out var tableInfoStorage);
+			CFStorage tableInfoStorage;
+			rootStorage.TryGetStorage("TableInfo", out tableInfoStorage);
 			if (tableInfoStorage == null) {
 				Logger.Info("TableInfo storage not found, skipping.");
 				return;
@@ -293,7 +299,8 @@ namespace VisualPinball.Engine.VPT.Table
 		private static void LoadTableMeta(Table table, CFStorage gameStorage)
 		{
 			// version
-			gameStorage.TryGetStream("Version", out var versionBytes);
+			CFStream versionBytes;
+			gameStorage.TryGetStream("Version", out versionBytes);
 			if (versionBytes != null) {
 				table.FileVersion = BitConverter.ToInt32(versionBytes.GetData(), 0);
 			} else {
@@ -302,7 +309,8 @@ namespace VisualPinball.Engine.VPT.Table
 
 
 			// hash
-			gameStorage.TryGetStream("Version", out var hashBytes);
+			CFStream hashBytes;
+			gameStorage.TryGetStream("Version", out hashBytes);
 			if (hashBytes != null) {
 				table.FileHash = hashBytes.GetData();
 			} else {

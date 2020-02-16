@@ -19,7 +19,10 @@ namespace VisualPinball.Engine.Math
 		public Vertex3D Vertex;
 
 		[BiffFloat("POSZ", Pos = 2)]
-		public float PosZ { set => Vertex.Z = value; get => Vertex.Z; }
+		public float PosZ {
+			set { Vertex.Z = value; }
+			get { return Vertex.Z; }
+		}
 
 		[BiffBool("SMTH", Pos = 3)]
 		public bool IsSmooth;

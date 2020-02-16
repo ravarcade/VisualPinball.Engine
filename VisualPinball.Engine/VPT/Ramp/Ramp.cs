@@ -23,7 +23,9 @@ namespace VisualPinball.Engine.VPT.Ramp
 		public float GetSurfaceHeight(float x, float y, Table.Table table)
 		{
 			var vVertex = _meshGenerator.GetCentralCurve(table);
-			Mesh.ClosestPointOnPolygon(vVertex, new Vertex2D(x, y), false, out var vOut, out var iSeg);
+			Vertex2D vOut;
+			int iSeg;
+			Mesh.ClosestPointOnPolygon(vVertex, new Vertex2D(x, y), false, out vOut, out iSeg);
 
 			if (iSeg == -1) {
 				return 0.0f; // Object is not on ramp path

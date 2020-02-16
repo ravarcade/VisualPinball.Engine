@@ -136,13 +136,16 @@ namespace VisualPinball.Engine.Test.IO
 
 					foreach (var attr in attrs) {
 						Type memberType = null;
-						switch (member) {
-							case FieldInfo field:
-								memberType = field.FieldType;
-								break;
-							case PropertyInfo property:
-								memberType = property.PropertyType;
-								break;
+
+						var field = member as FieldInfo;
+						var property = member as PropertyInfo;
+
+						if (field != null) {
+							memberType = field.FieldType;
+						}
+
+						if (property != null) {
+							memberType = property.PropertyType;
 						}
 
 						if (memberType == null) {

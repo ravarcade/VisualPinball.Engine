@@ -20,11 +20,11 @@ namespace VisualPinball.Engine.VPT.Trigger
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded)
 		{
-			var (preMatrix, _) = GetPreMatrix(table, origin, asRightHanded);
+			var matrices = GetPreMatrix(table, origin, asRightHanded);
 			var postMatrix = GetPostMatrix(table, origin);
 			return new RenderObjectGroup(_data.Name, "Triggers", postMatrix, new RenderObject(
 					_data.Name,
-					GetMesh().Transform(preMatrix),
+					GetMesh().Transform(matrices.Item1),
 					new PbrMaterial(table.GetMaterial(_data.Material)),
 					_data.IsVisible && _data.Shape != TriggerShape.TriggerNone
 				)

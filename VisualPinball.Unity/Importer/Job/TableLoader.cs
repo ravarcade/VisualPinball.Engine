@@ -150,7 +150,9 @@ namespace VisualPinball.Unity.Importer.Job
 			using (var data = MemHelper.ToByteArray(Data[index], DataLength[index])) {
 
 				// do the work, managed
-				Engine.VPT.Table.TableLoader.LoadGameItem(data.Value, index, out var itemType, out var item);
+				int itemType;
+				object item;
+				Engine.VPT.Table.TableLoader.LoadGameItem(data.Value, index, out itemType, out item);
 
 				// convert result back to unmanaged
 				ItemObj[index] = MemHelper.ToIntPtr(item);

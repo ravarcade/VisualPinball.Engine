@@ -79,15 +79,14 @@ namespace VisualPinball.Engine.IO
 
 				// index for each attribute into a given dictionary
 				foreach (var attr in attrs) {
-					switch (member) {
-						case FieldInfo field:
-							attr.Field = field;
-							break;
-						case PropertyInfo property:
-							attr.Property = property;
-							break;
+					var info = member as FieldInfo;
+					if (info != null) {
+						attr.Field = info;
 					}
-
+					var property = member as PropertyInfo;
+					if (property != null) {
+						attr.Property = property;
+					}
 					if (!attributes.ContainsKey(attr.Name)) {
 						attributes[attr.Name] = new List<BiffAttribute>();
 					}
@@ -157,7 +156,8 @@ namespace VisualPinball.Engine.IO
 					tag = ReadTag(reader);
 				}
 			} catch (Exception e) {
-				if (obj is ItemData itemData) {
+				var itemData = obj as ItemData;
+				if (itemData != null) {
 					throw new Exception("Error parsing tag \"" + tag + "\" at \"" + itemData.GetName() + "\" (" + itemData.StorageName + ").", e);
 				}
 				throw new Exception("Error parsing tag \"" + tag + "\".", e);

@@ -24,11 +24,11 @@ namespace VisualPinball.Engine.VPT.Rubber
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded = true)
 		{
 			var mesh = GetMesh(table);
-			var (preVertexMatrix, preNormalsMatrix) = GetPreMatrix(table, origin, asRightHanded);
+			var matrices = GetPreMatrix(table, origin, asRightHanded);
 			var postMatrix = GetPostMatrix(table, origin);
 			return new RenderObjectGroup(_data.Name, "Rubbers", postMatrix, new RenderObject(
 				_data.Name,
-				mesh.Transform(preVertexMatrix, preNormalsMatrix),
+				mesh.Transform(matrices.Item1, matrices.Item2),
 				new PbrMaterial(table.GetMaterial(_data.Material), table.GetTexture(_data.Image)),
 				_data.IsVisible
 			));

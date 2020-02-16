@@ -27,8 +27,16 @@ namespace VisualPinball.Engine.VPT.LightSeq
 		[BiffVertex("VCEN", Index = 0, Pos = 1)]
 		public Vertex2D V = new Vertex2D();
 
-		[BiffFloat("CTRX", Pos = 3)] public float PosX { set => Center.X = value; get => Center.X; }
-		[BiffFloat("CTRY", Pos = 4)] public float PosY { set => Center.Y = value; get => Center.Y; }
+		[BiffFloat("CTRX", Pos = 3)] public float PosX {
+			set { Center.X = value; }
+			get { return Center.X; }
+		}
+
+		[BiffFloat("CTRY", Pos = 4)] public float PosY {
+			set { Center.Y = value; }
+			get { return Center.Y; }
+		}
+
 		public Vertex2D Center = new Vertex2D();
 
 		[BiffInt("UPTM", Pos = 5)]

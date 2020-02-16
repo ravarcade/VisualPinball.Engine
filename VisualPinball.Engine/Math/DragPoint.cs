@@ -175,18 +175,23 @@ namespace VisualPinball.Engine.Math
 			return vv;
 		}
 
-		private static bool FlatWithAccuracy(IRenderVertex v1, IRenderVertex v2, IRenderVertex vMid, float accuracy) {
-
-			switch (v1) {
-				case Vertex3D v31 when v2 is Vertex3D v32 && vMid is Vertex3D vMid3:
-					return FlatWithAccuracy3(v31, v32, vMid3, accuracy);
-
-				case Vertex2D v21 when v2 is Vertex2D v22 && vMid is Vertex2D vMid2:
-					return FlatWithAccuracy2(v21, v22, vMid2, accuracy);
-
-				default:
-					throw new InvalidOperationException("Vertices must be either 2- or 3-dimensional.");
+		private static bool FlatWithAccuracy(IRenderVertex v1, IRenderVertex v2, IRenderVertex vMid, float accuracy)
+		{
+			var v31 = v1 as Vertex3D;
+			var v32 = v2 as Vertex3D;
+			var vMid3 = vMid as Vertex3D;
+			if (v31 != null && v32 != null && vMid3 != null) {
+				return FlatWithAccuracy3(v31, v32, vMid3, accuracy);
 			}
+
+			var v21 = v1 as Vertex2D;
+			var v22 = v2 as Vertex2D;
+			var vMid2 = vMid as Vertex2D;
+			if (v21 != null && v22 != null && vMid2 != null) {
+				return FlatWithAccuracy2(v21, v22, vMid2, accuracy);
+			}
+
+			throw new InvalidOperationException("Vertices must be either 2- or 3-dimensional.");
 		}
 
 		private static bool FlatWithAccuracy2(Vertex2D v1, Vertex2D v2, Vertex2D vMid, float accuracy) {

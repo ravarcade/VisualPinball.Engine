@@ -22,7 +22,6 @@ namespace VisualPinball.Engine.Test.VPT.Gate
 		[Fact]
 		public void ShouldGenerateBracketMeshes()
 		{
-			string GetName(IRenderable item, Mesh mesh) => $"{item.Name}{mesh.Name}";
 			AssertObjMesh(_table, _obj, _table.Gates["LongPlate"], GetName);
 			AssertObjMesh(_table, _obj, _table.Gates["Plate"], GetName);
 			AssertObjMesh(_table, _obj, _table.Gates["WireRectangle"], GetName);
@@ -30,6 +29,8 @@ namespace VisualPinball.Engine.Test.VPT.Gate
 			AssertObjMesh(_table, _obj, _table.Gates["TransformedGate"], GetName);
 			AssertObjMesh(_table, _obj, _table.Gates["SurfaceGate"], GetName);
 		}
+
+		private static string GetName(IRenderable item, Mesh mesh) => $"{item.Name}{mesh.Name}";
 
 		[Fact]
 		public void ShouldGenerateMeshWithoutBracket()

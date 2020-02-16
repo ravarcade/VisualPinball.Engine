@@ -59,7 +59,9 @@ namespace VisualPinball.Engine.VPT.Ramp
 				return GenerateFlatMesh(table);
 			}
 			var meshes = new Dictionary<string, Mesh>();
-			var (wireMeshA, wireMeshB) = GenerateWireMeshes(table);
+			var wires = GenerateWireMeshes(table);
+			var wireMeshA = wires.Item1;
+			var wireMeshB = wires.Item2;
 			switch (_data.RampType) {
 				case RampType.RampType1Wire: {
 					wireMeshA.Name = "Wire1";
