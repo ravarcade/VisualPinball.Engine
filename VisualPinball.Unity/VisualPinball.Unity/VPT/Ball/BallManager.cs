@@ -48,7 +48,12 @@ namespace VisualPinball.Unity.VPT.Ball
 
 			// go will be converted automatically to entity
 			//CreateViaGameObject(worldPos, localPos, localVel, scale * radius * 2, mass, radius, material);
-			CreateEntity(worldPos, localPos, localVel, scale * radius * 2, mass, radius, material);
+			if (player.physicsEngine == null)
+				CreateEntity(worldPos, localPos, localVel, scale * radius * 2, mass, radius, material);
+			else
+				player.physicsEngine?.OnCreateBall(
+					CreateSphere(material, worldPos, scale * radius * 2),
+					radius, mass);
 
 			//return new BallApi(go.GetComponent<GameObjectEntity>().Entity, player);
 			return null;

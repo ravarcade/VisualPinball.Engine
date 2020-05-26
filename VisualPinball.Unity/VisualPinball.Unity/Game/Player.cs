@@ -16,12 +16,27 @@ using VisualPinball.Unity.VPT.Ball;
 using VisualPinball.Unity.VPT.Flipper;
 using VisualPinball.Unity.VPT.Kicker;
 using VisualPinball.Unity.VPT.Table;
+using VisualPinball.Unity.Physics;
 using Random = UnityEngine.Random;
 
 namespace VisualPinball.Unity.Game
 {
 	public class Player : MonoBehaviour
 	{
+		private IPhysicsEngine _physicsEngine = null;
+        public IPhysicsEngine physicsEngine { get { return _physicsEngine; } }
+        public void RegisterPhysicsEngine(IPhysicsEngine physicsEngine)
+        {
+            if (_physicsEngine != null && _physicsEngine != physicsEngine)
+                throw new System.InvalidOperationException("You can't have 2 physics engines.");
+            _physicsEngine = physicsEngine;
+
+            // if RegisterPhysicsEngine is called after Player.Awake, we need to initialize physics engine now.
+            if (_table != null)
+                _physicsEngine.Initialize(this);
+
+        }
+
 		private readonly TableApi _tableApi = new TableApi();
 
 		private readonly Dictionary<int, FlipperApi> _flippers = new Dictionary<int, FlipperApi>();
@@ -43,6 +58,7 @@ namespace VisualPinball.Unity.Game
 			var flipperApi = new FlipperApi(flipper, entity, this);
 			_tableApi.Flippers[flipper.Name] = flipperApi;
 			_flippers[entity.Index] = flipperApi;
+			physicsEngine?.OnRegisterFlipper(go, entity.Index);
 			// World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<FlipperSystem>().OnRotated +=
 			// 	(sender, e) => flipperApi.HandleEvent(e);
 		}
@@ -76,6 +92,7 @@ namespace VisualPinball.Unity.Game
 			_table = tableComponent.CreateTable();
 			_ballManager = new BallManager(_table);
 			_player = gameObject.GetComponent<Player>();
+			physicsEngine?.Initialize(this);
 			#if FLIPPER_LOG
 			DebugLog = File.CreateText("flipper.log");
 			#endif
