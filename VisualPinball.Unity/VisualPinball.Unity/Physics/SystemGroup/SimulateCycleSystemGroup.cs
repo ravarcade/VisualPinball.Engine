@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using Unity.Collections;
 using Unity.Entities;
 using VisualPinball.Engine.Common;
@@ -71,6 +72,9 @@ namespace VisualPinball.Unity.Physics.SystemGroup
 
 		protected override void OnUpdate()
 		{
+			Stopwatch stopwatch = new Stopwatch();
+			stopwatch.Start();
+
 			var sim = World.GetExistingSystem<VisualPinballSimulationSystemGroup>();
 
 			_staticCounts = PhysicsConstants.StaticCnts;
@@ -97,7 +101,9 @@ namespace VisualPinball.Unity.Physics.SystemGroup
 				dTime -= HitTime;
 
 				SwapBallCollisionHandling = !SwapBallCollisionHandling;
+				DebugUI.OnPhysicsUpdate();
 			}
+			DebugUI.PhysicsFrameProcessingTime((float)stopwatch.Elapsed.TotalMilliseconds);
 		}
 
 		private void ApplyFlipperTime()
