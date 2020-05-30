@@ -73,6 +73,7 @@ namespace VisualPinball.Unity.Physics.SystemGroup
 		protected override void OnUpdate()
 		{
 			Stopwatch stopwatch = new Stopwatch();
+			int numSteps = 0;
 			stopwatch.Start();
 
 			var sim = World.GetExistingSystem<VisualPinballSimulationSystemGroup>();
@@ -101,9 +102,9 @@ namespace VisualPinball.Unity.Physics.SystemGroup
 				dTime -= HitTime;
 
 				SwapBallCollisionHandling = !SwapBallCollisionHandling;
-				DebugUI.OnPhysicsUpdate();
+				++numSteps;
 			}
-			DebugUI.PhysicsFrameProcessingTime((float)stopwatch.Elapsed.TotalMilliseconds);
+			DPProxy.OnPhysicsUpdate(numSteps, (float)stopwatch.Elapsed.TotalMilliseconds);
 		}
 
 		private void ApplyFlipperTime()
