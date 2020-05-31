@@ -43,5 +43,6 @@ namespace VisualPinball.Unity.DebugAndPhysicsComunicationProxy
 
         public float GetFloat(Params param) { return 0; }
         public void SetFloat(Params param, float val) { }
+        public void ManualBallRoller(Entity entity, float3 targetPosition) { }
     }
 }

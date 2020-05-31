@@ -47,6 +47,7 @@ namespace VisualPinball.Unity.DebugAndPhysicsComunicationProxy
         void OnRotateToEnd(Entity entity);
         void OnRotateToStart(Entity entity);
         bool UsePureEntity();
+        void ManualBallRoller(Entity entity, float3 targetPosition);
 
         // ========================================================================== accesible from DebugUI ===
         bool GetFlipperState(Entity entity, out FlipperState flipperState);
