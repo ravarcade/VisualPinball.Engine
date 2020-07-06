@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
+using VisualPinball.Unity.Editor.Utils;
 using VisualPinball.Unity.VPT;
 using VisualPinball.Unity.VPT.Flipper;
 
@@ -112,23 +114,45 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			}
 
 			bool dragPointEditEnabled = (_primaryItem as IDragPointsEditable)?.DragPointEditEnabled ?? false;
+
 			if (!dragPointEditEnabled) {
-				switch (Tools.current) {
-					case Tool.Rotate:
-						HandleRotationTool();
-						break;
+				if (_primaryItem.IsLocked)
+				{
+					HandleLockedTool();
+				}
+				else
+				{
+					switch (Tools.current)
+					{
+						case Tool.Rotate:
+							HandleRotationTool();
+							break;
 
-					case Tool.Move:
-						HandleMoveTool();
-						break;
+						case Tool.Move:
+							HandleMoveTool();
+							break;
 
-					case Tool.Scale:
-						HandleScaleTool();
-						break;
+						case Tool.Scale:
+							HandleScaleTool();
+							break;
+					}
 				}
 			}
 
 			RebuildMeshes();
+		}
+
+		private void HandleLockedTool()
+		{
+			var handlePos = _primaryItem.GetEditorPosition();
+			if (_transform.parent != null)
+			{
+				handlePos = _transform.parent.TransformPoint(handlePos);
+			}
+
+			Handles.color = UnityEngine.Color.red;
+			Handles.Button(handlePos, Quaternion.identity, HandleUtility.GetHandleSize(handlePos) * 0.25f, HandleUtility.GetHandleSize(handlePos) * 0.25f, Handles.SphereHandleCap);
+			Handles.Label(handlePos + Vector3.right * HandleUtility.GetHandleSize(handlePos) * 0.3f, "LOCKED");
 		}
 
 		private void HandleRotationTool()
@@ -206,60 +230,17 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 		private void HandleMoveTool()
 		{
-			var handlePos = _primaryItem.GetEditorPosition();
-			if (_transform.parent != null) {
-				handlePos = _transform.parent.TransformPoint(handlePos);
-			}
-
 			Quaternion parentRot = Quaternion.identity;
-			if (_transform.parent != null) {
+			Vector3 handlePos = _primaryItem.GetEditorPosition();
+			if (_transform.parent != null)
+			{
+				handlePos = _transform.parent.TransformPoint(handlePos);
 				parentRot = _transform.parent.transform.rotation;
 			}
-			Vector3 forward = parentRot * Vector3.forward;
-			Vector3 right = parentRot * Vector3.right;
-			Vector3 up = parentRot * Vector3.up;
-
-			switch (_primaryItem.EditorPositionType) {
-				case ItemDataTransformType.TwoD: {
-					EditorGUI.BeginChangeCheck();
-					Handles.color = Handles.xAxisColor;
-					var newPos = Handles.Slider(handlePos, right);
-					if (EditorGUI.EndChangeCheck()) {
-						FinishMove(newPos);
-					}
-
-					EditorGUI.BeginChangeCheck();
-					Handles.color = Handles.yAxisColor;
-					newPos = Handles.Slider(handlePos, up);
-					if (EditorGUI.EndChangeCheck()) {
-						FinishMove(newPos);
-					}
-
-					EditorGUI.BeginChangeCheck();
-					Handles.color = Handles.zAxisColor;
-					newPos = Handles.Slider2D(
-						handlePos,
-						forward,
-						right,
-						up,
-						HandleUtility.GetHandleSize(handlePos) * 0.2f,
-						Handles.RectangleHandleCap,
-						0f);
-					if (EditorGUI.EndChangeCheck()) {
-						FinishMove(newPos);
-					}
-					break;
-				}
-				case ItemDataTransformType.ThreeD: {
-					EditorGUI.BeginChangeCheck();
-					Vector3 newPos = Handles.PositionHandle(handlePos, parentRot);
-					if (EditorGUI.EndChangeCheck()) {
-						FinishMove(newPos);
-					}
-					break;
-				}
-				default:
-					break;
+			EditorGUI.BeginChangeCheck();
+			handlePos = HandlesUtils.HandlePosition(handlePos, _primaryItem.EditorPositionType, parentRot);
+			if (EditorGUI.EndChangeCheck()) {
+				FinishMove(handlePos);
 			}
 		}
 
@@ -311,19 +292,21 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			}
 		}
 
-		private void FinishMove(Vector3 newWorldPos, bool isLocalPos = false)
+		private void FinishMove(Vector3 newPosition, bool isLocalPos = false)
 		{
 			_primaryItem.MeshDirty = true;
 			string undoLabel = "Move " + _transform.gameObject.name;
 			Undo.RecordObject(_primaryItem as UnityEngine.Object, undoLabel);
 			Undo.RecordObject(_transform, undoLabel);
-			var finalPos = newWorldPos;
-			if (_transform.parent != null && !isLocalPos) {
-				finalPos = _transform.parent.InverseTransformPoint(newWorldPos);
+			var finalPos = newPosition;
+			if (_transform.parent != null && !isLocalPos)
+			{
+				finalPos = _transform.parent.InverseTransformPoint(newPosition);
 			}
 			_primaryItem.SetEditorPosition(finalPos);
 
-			foreach (var secondary in _secondaryItems) {
+			foreach (var secondary in _secondaryItems)
+			{
 				secondary.Item.MeshDirty = true;
 				Undo.RecordObject(secondary.Item as UnityEngine.Object, undoLabel);
 				Undo.RecordObject(secondary.Transform, undoLabel);

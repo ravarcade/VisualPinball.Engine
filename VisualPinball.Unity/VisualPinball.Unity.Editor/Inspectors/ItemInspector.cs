@@ -2,36 +2,60 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Math;
-using VisualPinball.Unity.Editor.Editors;
 using VisualPinball.Unity.VPT;
 using VisualPinball.Unity.VPT.Surface;
 using VisualPinball.Unity.VPT.Table;
 using VisualPinball.Unity.Extensions;
 using System;
 
+
 namespace VisualPinball.Unity.Editor.Inspectors
 {
 	public abstract class ItemInspector : UnityEditor.Editor
     {
-		public DragPointsEditor DragPointsEditor { get { return _dragPointsEditor; } }
-
 		protected TableBehavior _table;
 		protected SurfaceBehavior _surface;
-		protected DragPointsEditor _dragPointsEditor = null;
 
 		protected string[] _allMaterials = new string[0];
+		protected string[] _allTextures = new string[0];
 
 		protected virtual void OnEnable()
 		{
 			_table = (target as MonoBehaviour)?.gameObject.GetComponentInParent<TableBehavior>();
-			_dragPointsEditor = new DragPointsEditor(this);
 
-			if (_table != null && _table.data.Materials != null) {
-				_allMaterials = new string[_table.data.Materials.Length+1];
-				_allMaterials[0] = "- none -";
-				for (int i = 0; i < _table.data.Materials.Length; i++) {
-					_allMaterials[i+1] = _table.data.Materials[i].Name;
+			if (_table != null) {
+				if (_table.data.Materials != null) {
+					_allMaterials = new string[_table.data.Materials.Length + 1];
+					_allMaterials[0] = "- none -";
+					for (int i = 0; i < _table.data.Materials.Length; i++) {
+						_allMaterials[i + 1] = _table.data.Materials[i].Name;
+					}
+					Array.Sort(_allMaterials, 1, _allMaterials.Length - 1);
 				}
+				if (_table.Textures != null) {
+					_allTextures = new string[_table.Textures.Length + 1];
+					_allTextures[0] = "- none -";
+					for (int i = 0; i < _table.Textures.Length; i++) {
+						_allTextures[i + 1] = _table.Textures[i].Name;
+					}
+					Array.Sort(_allTextures, 1, _allTextures.Length - 1);
+				}
+			}
+
+		}
+
+		protected void OnPreInspectorGUI()
+		{
+			var item = (target as IEditableItemBehavior);
+			if (item == null) return;
+
+			EditorGUI.BeginChangeCheck();
+			bool newLock = EditorGUILayout.Toggle("IsLocked", item.IsLocked);
+			if (EditorGUI.EndChangeCheck())
+			{
+				FinishEdit("IsLocked");
+				item.IsLocked = newLock;
+				SceneView.RepaintAll();
 			}
 		}
 
@@ -50,11 +74,6 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			}
 		}
 
-		public virtual void OnSceneGUI()
-		{
-			_dragPointsEditor.OnSceneGUI(target);
-		}
-
 		protected void ItemDataField(string label, ref float field, bool dirtyMesh = true)
 		{
 			EditorGUI.BeginChangeCheck();
@@ -65,10 +84,30 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			}
 		}
 
+		public void ItemDataSlider(string label, ref float field, float leftVal, float rightVal, bool dirtyMesh = true)
+		{
+			EditorGUI.BeginChangeCheck();
+			float val = EditorGUILayout.Slider(label, field, leftVal, rightVal);
+			if (EditorGUI.EndChangeCheck()) {
+				FinishEdit(label, dirtyMesh);
+				field = val;
+			}
+		}
+
 		protected void ItemDataField(string label, ref int field, bool dirtyMesh = true)
 		{
 			EditorGUI.BeginChangeCheck();
 			int val = EditorGUILayout.IntField(label, field);
+			if (EditorGUI.EndChangeCheck()) {
+				FinishEdit(label, dirtyMesh);
+				field = val;
+			}
+		}
+
+		public void ItemDataSlider(string label, ref int field, int leftVal, int rightVal, bool dirtyMesh = true)
+		{
+			EditorGUI.BeginChangeCheck();
+			int val = EditorGUILayout.IntSlider(label, field, leftVal, rightVal);
 			if (EditorGUI.EndChangeCheck()) {
 				FinishEdit(label, dirtyMesh);
 				field = val;
@@ -148,7 +187,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			}
 		}
 
-		protected void DropDownField<T>(string label, ref T field, string[] optionStrings, T[] optionValues, bool dirtyMesh = true) where T : IEquatable<T>
+		protected void DropDownField<T>(string label, ref T field, string[] optionStrings, T[] optionValues, bool dirtyMesh = true) where T : System.IEquatable<T>
 		{
 			if (optionStrings == null || optionValues == null || optionStrings.Length != optionValues.Length) {
 				return;
@@ -169,19 +208,38 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			}
 		}
 
+		protected void TextureField(string label, ref string field, bool dirtyMesh = true)
+		{
+			if (_table == null) return;
+
+			int selectedIndex = 0;
+			for (int i = 0; i < _allTextures.Length; i++) {
+				if (_allTextures[i] == field) {
+					selectedIndex = i;
+					break;
+				}
+			}
+			EditorGUI.BeginChangeCheck();
+			selectedIndex = EditorGUILayout.Popup(label, selectedIndex, _allTextures);
+			if (EditorGUI.EndChangeCheck() && selectedIndex >= 0 && selectedIndex < _allTextures.Length) {
+				FinishEdit(label, dirtyMesh);
+				field = selectedIndex == 0 ? "" : _allTextures[selectedIndex];
+			}
+		}
+
 		protected void MaterialField(string label, ref string field, bool dirtyMesh = true)
 		{
 			DropDownField(label, ref field, _allMaterials, _allMaterials, dirtyMesh);
 			if (_allMaterials.Length > 0 && field == _allMaterials[0]) {
-				field = ""; // don't store the none value string in our data
+				field = ""; // don't store the none value string in our data 
 			}
 		}
 
-		private void FinishEdit(string label, bool dirtyMesh = true)
+		protected virtual void FinishEdit(string label, bool dirtyMesh = true)
 		{
-			string undoLabel = "Edit " + label;
+			string undoLabel = $"[{target?.name}] Edit {label}";
 			if (dirtyMesh) {
-				// set dirty flag true before recording object state for the undo so meshes will rebuild after the undo as well
+				// set dirty flag true before recording object state for the undo so meshes will rebuild after the undo as well 
 				var item = (target as IEditableItemBehavior);
 				if (item != null) {
 					item.MeshDirty = true;

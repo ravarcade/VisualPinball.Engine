@@ -1,16 +1,43 @@
 ﻿using UnityEditor;
+using VisualPinball.Engine.VPT;
+using VisualPinball.Unity.Editor.DragPoint;
 using VisualPinball.Unity.VPT.Ramp;
 
 namespace VisualPinball.Unity.Editor.Inspectors
 {
 	[CustomEditor(typeof(RampBehavior))]
-	public class RampInspector : ItemInspector
+	public class RampInspector : DragPointsItemInspector
 	{
 		private RampBehavior _ramp;
 		private bool _foldoutColorsAndFormatting = true;
 		private bool _foldoutPosition = true;
 		private bool _foldoutPhysics = true;
 		private bool _foldoutMisc = true;
+
+		private static string[] _rampTypeStrings = {
+			"Flat",
+			"1 Wire",
+			"2 Wire",
+			"3 Wire Left",
+			"3 Wire Right",
+			"4 Wire",
+		};
+		private static int[] _rampTypeValues = {
+			RampType.RampTypeFlat,
+			RampType.RampType1Wire,
+			RampType.RampType2Wire,
+			RampType.RampType3WireLeft,
+			RampType.RampType3WireRight,
+			RampType.RampType4Wire,
+		};
+		private static string[] _rampImageAlignmentStrings = {
+			"World",
+			"Wrap",
+		};
+		private static int[] _rampImageAlignmentValues = {
+			RampImageAlignment.ImageModeWorld,
+			RampImageAlignment.ImageModeWrap,
+		};
 
 		protected override void OnEnable()
 		{
@@ -20,12 +47,16 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 		public override void OnInspectorGUI()
 		{
-			_dragPointsEditor.OnInspectorGUI(target);
+			base.OnPreInspectorGUI();
 
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
+				DropDownField("Type", ref _ramp.data.RampType, _rampTypeStrings, _rampTypeValues);
+				TextureField("Image", ref _ramp.data.Image);
+				MaterialField("Material", ref _ramp.data.Material);
+				DropDownField("Image Mode", ref _ramp.data.ImageAlignment, _rampImageAlignmentStrings, _rampImageAlignmentValues);
+				ItemDataField("Apply Image To Wall", ref _ramp.data.ImageWalls);
 				ItemDataField("Visible", ref _ramp.data.IsVisible);
 				ItemDataField("Depth Bias", ref _ramp.data.DepthBias);
-				ItemDataField("Reflection Enabled", ref _ramp.data.IsReflectionEnabled);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
@@ -63,7 +94,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 				EditorGUI.indentLevel--;
 
 				EditorGUI.BeginDisabledGroup(_ramp.data.OverwritePhysics);
-				ItemDataField("Physics Material", ref _ramp.data.PhysicsMaterial, dirtyMesh: false);
+				MaterialField("Physics Material", ref _ramp.data.PhysicsMaterial, dirtyMesh: false);
 				EditorGUI.EndDisabledGroup();
 
 				ItemDataField("Overwrite Material Settings", ref _ramp.data.OverwritePhysics, dirtyMesh: false);

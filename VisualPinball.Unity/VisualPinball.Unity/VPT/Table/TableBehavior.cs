@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using NLog;
 using UnityEngine;
@@ -31,9 +30,7 @@ using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.TextBox;
 using VisualPinball.Engine.VPT.Timer;
 using VisualPinball.Engine.VPT.Trigger;
-using VisualPinball.Unity.Common;
 using VisualPinball.Unity.Extensions;
-using VisualPinball.Unity.Import.AssetHandler;
 using VisualPinball.Unity.Physics.DebugUI;
 using VisualPinball.Unity.Physics.Engine;
 using VisualPinball.Unity.VPT.Bumper;
@@ -59,30 +56,16 @@ namespace VisualPinball.Unity.VPT.Table
 	public class TableBehavior : ItemBehavior<Engine.VPT.Table.Table, TableData>
 	{
 		public Engine.VPT.Table.Table Table => Item;
-		// TODO: exposing the asset handler here is a crutch too get material selection working,
-		// this will break down as soon as a table is loaded by unity as an asset, or if we have 
-		// to restore due a script recompile.
-		public IAssetHandler AssetHandler { get; internal set; } = null;
-
-		[HideInInspector] public Dictionary<string, string> tableInfo = new SerializableDictionary<string, string>();
-		[HideInInspector] public TextureData[] textures;
-		[HideInInspector] public CustomInfoTags customInfoTags;
-		[HideInInspector] public CollectionData[] collections;
-		[HideInInspector] public DecalData[] decals;
-		[HideInInspector] public DispReelData[] dispReels;
-		[HideInInspector] public FlasherData[] flashers;
-		[HideInInspector] public LightSeqData[] lightSeqs;
-		[HideInInspector] public PlungerData[] plungers;
-		[HideInInspector] public SoundData[] sounds;
-		[HideInInspector] public TextBoxData[] textBoxes;
-		[HideInInspector] public TimerData[] timers;
-
-		[HideInInspector] public string textureFolder;
-
-		[HideInInspector] public string physicsEngineId;
-		[HideInInspector] public string debugUiId;
+		public TextureData[] Textures => _sidecar?.textures;
+		public Patcher.Patcher.Patcher Patcher { get; internal set; }
 
 		protected override string[] Children => null;
+
+		[HideInInspector] [SerializeField] public string physicsEngineId;
+		[HideInInspector] [SerializeField] public string debugUiId;
+		[HideInInspector] [SerializeField] private TableSidecar _sidecar;
+		private readonly Dictionary<string, Texture2D> _unityTextures = new Dictionary<string, Texture2D>();
+		private readonly Dictionary<string, UnityEngine.Material> _unityMaterials = new Dictionary<string, UnityEngine.Material>();
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -96,16 +79,65 @@ namespace VisualPinball.Unity.VPT.Table
 			}
 		}
 
-		private void Start()
+		protected virtual void Start()
 		{
 			if (EngineProvider<IDebugUI>.Exists) {
 				EngineProvider<IDebugUI>.Get().Init(this);
 			}
 		}
 
+		protected override void OnDrawGizmos()
+		{
+			// do nothing, base class draws all child meshes for ease of selection, but
+			// that would just be everything at this level
+		}
+
 		protected override Engine.VPT.Table.Table GetItem()
 		{
 			return RecreateTable();
+		}
+
+		internal TableSidecar GetOrCreateSidecar()
+		{
+			if (_sidecar == null) {
+				var sidecarGo = new GameObject("Table Sidecar");
+				sidecarGo.transform.parent = this.transform;
+				_sidecar = sidecarGo.AddComponent<TableSidecar>();
+			}
+			return _sidecar;
+		}
+
+		public void AddTexture(string name, Texture2D texture)
+		{
+			_unityTextures[name.ToLower()] = texture;
+		}
+
+		public Texture2D GetTexture(string name)
+		{
+			var lowerName = name.ToLower();
+			if (_unityTextures.ContainsKey(lowerName)) {
+				return _unityTextures[lowerName];
+			}
+			var tableTex = Table.GetTexture(lowerName);
+			if (tableTex != null) {
+				var unityTex = tableTex.ToUnityTexture();
+				_unityTextures[lowerName] = unityTex;
+				return unityTex;
+			}
+			return null;
+		}
+
+		public void AddMaterial(PbrMaterial vpxMat, UnityEngine.Material material)
+		{
+			_unityMaterials[vpxMat.Id] = material;
+		}
+
+		public UnityEngine.Material GetMaterial(PbrMaterial vpxMat)
+		{
+			if (_unityMaterials.ContainsKey(vpxMat.Id)) {
+				return _unityMaterials[vpxMat.Id];
+			}
+			return null;
 		}
 
 		public Engine.VPT.Table.Table CreateTable()
@@ -116,23 +148,23 @@ namespace VisualPinball.Unity.VPT.Table
 
 			// restore table info
 			Logger.Info("Restoring table info...");
-			foreach (var k in tableInfo.Keys) {
-				table.TableInfo[k] = tableInfo[k];
+			foreach (var k in _sidecar.tableInfo.Keys) {
+				table.TableInfo[k] = _sidecar.tableInfo[k];
 			}
 
 			// restore custom info tags
-			table.CustomInfoTags = customInfoTags;
+			table.CustomInfoTags = _sidecar.customInfoTags;
 
 			// restore game items with no game object (yet!)
 			table.Decals.Clear();
-			table.Decals.AddRange(decals.Select(d => new Decal(d)));
-			Restore(collections, table.Collections, d => new Collection(d));
-			Restore(dispReels, table.DispReels, d => new DispReel(d));
-			Restore(flashers, table.Flashers, d => new Flasher(d));
-			Restore(lightSeqs, table.LightSeqs, d => new LightSeq(d));
-			Restore(plungers, table.Plungers, d => new Engine.VPT.Plunger.Plunger(d));
-			Restore(textBoxes, table.TextBoxes, d => new TextBox(d));
-			Restore(timers, table.Timers, d => new Timer(d));
+			table.Decals.AddRange(_sidecar.decals.Select(d => new Decal(d)));
+			Restore(_sidecar.collections, table.Collections, d => new Collection(d));
+			Restore(_sidecar.dispReels, table.DispReels, d => new DispReel(d));
+			Restore(_sidecar.flashers, table.Flashers, d => new Flasher(d));
+			Restore(_sidecar.lightSeqs, table.LightSeqs, d => new LightSeq(d));
+			Restore(_sidecar.plungers, table.Plungers, d => new Engine.VPT.Plunger.Plunger(d));
+			Restore(_sidecar.textBoxes, table.TextBoxes, d => new TextBox(d));
+			Restore(_sidecar.timers, table.Timers, d => new Timer(d));
 
 			// restore game items
 			Logger.Info("Restoring game items...");
@@ -157,27 +189,13 @@ namespace VisualPinball.Unity.VPT.Table
 		{
 			var table = CreateTable();
 
-			Restore(sounds, table.Sounds, d => new Sound(d));
+			Restore(_sidecar.sounds, table.Sounds, d => new Sound(d));
 
 			// restore textures
 			Logger.Info("Restoring textures...");
-			foreach (var textureData in textures) {
+			foreach (var textureData in _sidecar.textures) {
 				var texture = new Texture(textureData);
-				if (File.Exists(texture.GetUnityFilename(textureFolder))) {
-					if (textureData.Binary != null && textureData.Binary.Size > 0) {
-						textureData.Binary.Data = File.ReadAllBytes(texture.GetUnityFilename(textureFolder));
-						textureData.Bitmap = null;
-
-					} else if (textureData.Bitmap != null && textureData.Bitmap.Width > 0) {
-						textureData.Bitmap.Data = File.ReadAllBytes(texture.GetUnityFilename(textureFolder));
-						textureData.Binary = null;
-					}
-
-				} else {
-					Logger.Warn($"Cannot find {texture.GetUnityFilename(textureFolder)}.");
-				}
-
-				table.Textures[texture.Name] = texture;
+				table.Textures[texture.Name.ToLower()] = texture;
 			}
 
 			Logger.Info("Table restored.");

@@ -1,12 +1,14 @@
 ﻿using UnityEditor;
+using VisualPinball.Unity.Editor.DragPoint;
 using VisualPinball.Unity.VPT.Rubber;
 
 namespace VisualPinball.Unity.Editor.Inspectors
 {
 	[CustomEditor(typeof(RubberBehavior))]
-	public class RubberInspector : ItemInspector
+	public class RubberInspector : DragPointsItemInspector
 	{
 		private RubberBehavior _rubber;
+		private bool _foldoutColorsAndFormatting = true;
 		private bool _foldoutPosition = true;
 		private bool _foldoutPhysics = true;
 		private bool _foldoutMisc = true;
@@ -19,7 +21,14 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 		public override void OnInspectorGUI()
 		{
-			_dragPointsEditor.OnInspectorGUI(target);
+			base.OnPreInspectorGUI();
+
+			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
+				TextureField("Image", ref _rubber.data.Image);
+				MaterialField("Material", ref _rubber.data.Material);
+				ItemDataField("Visible", ref _rubber.data.IsVisible);
+			}
+			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutPosition = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPosition, "Position")) {
 				ItemDataField("Height", ref _rubber.data.Height);
@@ -35,7 +44,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 			if (_foldoutPhysics = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPhysics, "Physics")) {
 				EditorGUI.BeginDisabledGroup(_rubber.data.OverwritePhysics);
-				ItemDataField("Physics Material", ref _rubber.data.PhysicsMaterial, dirtyMesh: false);
+				MaterialField("Physics Material", ref _rubber.data.PhysicsMaterial, dirtyMesh: false);
 				EditorGUI.EndDisabledGroup();
 
 				ItemDataField("Overwrite Material Settings", ref _rubber.data.OverwritePhysics, dirtyMesh: false);

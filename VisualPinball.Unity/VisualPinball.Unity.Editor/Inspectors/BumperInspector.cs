@@ -20,6 +20,8 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 		public override void OnInspectorGUI()
 		{
+			base.OnPreInspectorGUI();
+
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
 				MaterialField("Cap Material", ref _bumper.data.CapMaterial);
 				MaterialField("Base Material", ref _bumper.data.BaseMaterial);
@@ -30,7 +32,6 @@ namespace VisualPinball.Unity.Editor.Inspectors
 				ItemDataField("Orientation", ref _bumper.data.Orientation);
 				ItemDataField("Ring Speed", ref _bumper.data.RingSpeed, dirtyMesh: false);
 				ItemDataField("Ring Drop Offset", ref _bumper.data.RingDropOffset, dirtyMesh: false);
-				ItemDataField("Reflection Enabled", ref _bumper.data.IsReflectionEnabled);
 				ItemDataField("Cap Visible", ref _bumper.data.IsCapVisible);
 				ItemDataField("Base Visible", ref _bumper.data.IsBaseVisible);
 				ItemDataField("Ring Visible", ref _bumper.data.IsRingVisible);

@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using NLog;
 using Unity.Entities;
 using UnityEngine;
@@ -6,6 +6,7 @@ using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Unity.Extensions;
+using VisualPinball.Unity.Import;
 using VisualPinball.Unity.VPT.Table;
 using Logger = NLog.Logger;
 
@@ -55,13 +56,28 @@ namespace VisualPinball.Unity.VPT
 				UpdateMesh(Item.Name, gameObject, rog, table);
 			} else {
 				foreach (var child in children) {
-					Transform childTransform = transform.Find(child);
-					//Some ItemBehaviors don't put child into hierarchy when it's alone, but name is kept (Ramps, Surfaces)
-					if (childTransform == null) {
-						childTransform = transform;
-					}
-					if (childTransform != null) {
-						UpdateMesh(child, childTransform.gameObject, rog, table);
+					if (transform.childCount == 0) {
+						//Find the matching  renderObject  and Update it based on base gameObject
+						var ro = rog.RenderObjects.FirstOrDefault(r => r.Name == child);
+						if (ro != null)
+						{
+							UpdateMesh(child, gameObject, rog, table);
+							break;
+						}
+					} else {
+						Transform childTransform = transform.Find(child);
+						if (childTransform != null) {
+							UpdateMesh(child, childTransform.gameObject, rog, table);
+						} else {
+							// child hasn't been created yet (i.e. ramp might have changed type)
+							var ro = rog.RenderObjects.FirstOrDefault(r => r.Name == child);
+							if (ro != null) {
+								var subObj = new GameObject(ro.Name);
+								subObj.transform.SetParent(this.transform, false);
+								subObj.layer = VpxImporter.ChildObjectsLayer;
+								VpxImporter.ImportRenderObject(this.Item, ro, subObj, table);
+							}
+						}
 					}
 				}
 			}
@@ -85,6 +101,8 @@ namespace VisualPinball.Unity.VPT
 		public virtual ItemDataTransformType EditorScaleType => ItemDataTransformType.None;
 		public virtual Vector3 GetEditorScale() { return Vector3.zero; }
 		public virtual void SetEditorScale(Vector3 rot) { }
+
+		public bool IsLocked { get { return data.IsLocked; } set { data.IsLocked = value; } }
 
 		protected void Convert(Entity entity, EntityManager dstManager)
 		{
@@ -130,8 +148,8 @@ namespace VisualPinball.Unity.VPT
 			}
 
 			if (mr != null) {
-				if (table != null && table.AssetHandler != null) {
-					mr.sharedMaterial = ro.Material.ToUnityMaterial(table.AssetHandler);
+				if (table != null) {
+					mr.sharedMaterial = ro.Material.ToUnityMaterial(table);
 				}
 				mr.enabled = true;
 			}

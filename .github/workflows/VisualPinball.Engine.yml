@@ -12,5 +12,30 @@ jobs:
              dotnet build -c Release
         - name: Test
           run: |
-             .packages/NUnit.ConsoleRunner.3.11.1/tools/nunit3-console.exe VisualPinball.Engine.Test/.build/Release/VisualPinball.Engine.Test.dll
+             .packages/nunit.consolerunner/3.11.1/tools/nunit3-console.exe VisualPinball.Engine.Test/.bin/Release/net472/VisualPinball.Engine.Test.dll
 
+    visualpinball-engine-osx:
+      runs-on: macos-latest
+      steps:
+        - uses: actions/checkout@v2
+        - uses: nuget/setup-nuget@v1
+        - name: Build
+          run: |
+             nuget restore
+             msbuild /p:Configuration=Release
+        - name: Test
+          run: |
+             mono .packages/nunit.consolerunner/3.11.1/tools/nunit3-console.exe VisualPinball.Engine.Test/.bin/Release/net472/VisualPinball.Engine.Test.dll
+
+    visualpinball-engine-linux:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v2
+        - uses: nuget/setup-nuget@v1
+        - name: Build
+          run: |
+             nuget restore
+             msbuild /p:Configuration=Release
+        - name: Test
+          run: |
+             mono .packages/nunit.consolerunner/3.11.1/tools/nunit3-console.exe VisualPinball.Engine.Test/.bin/Release/net472/VisualPinball.Engine.Test.dll

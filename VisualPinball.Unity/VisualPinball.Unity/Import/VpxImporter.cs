@@ -21,8 +21,6 @@ using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.Trigger;
 using VisualPinball.Unity.Extensions;
-using VisualPinball.Unity.Import.AssetHandler;
-using VisualPinball.Unity.Import.Job;
 using VisualPinball.Unity.VPT.Bumper;
 using VisualPinball.Unity.VPT.Flipper;
 using VisualPinball.Unity.VPT.Gate;
@@ -39,7 +37,6 @@ using VisualPinball.Unity.VPT.Table;
 using VisualPinball.Unity.VPT.Trigger;
 using Logger = NLog.Logger;
 using Player = VisualPinball.Unity.Game.Player;
-using Texture = VisualPinball.Engine.VPT.Texture;
 
 namespace VisualPinball.Unity.Import
 {
@@ -51,22 +48,21 @@ namespace VisualPinball.Unity.Import
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		private Patcher.Patcher.Patcher _patcher;
-
 		private readonly Dictionary<IRenderable, RenderObjectGroup> _renderObjects = new Dictionary<IRenderable, RenderObjectGroup>();
 		private readonly Dictionary<string, GameObject> _parents = new Dictionary<string, GameObject>();
 
 		private Table _table;
-		private IAssetHandler _assetHandler;
+		private TableBehavior _tb;
 
-		public void Import(string fileName, Table table, IAssetHandler assetHandler)
+		public void Import(string fileName, Table table)
 		{
 			_table = table;
-			_assetHandler = assetHandler;
 
 			var go = gameObject;
 			go.name = _table.Name;
-			_patcher = new Patcher.Patcher.Patcher(_table, fileName);
+			MakeSerializable(go, table);
+
+			_tb.Patcher = new Patcher.Patcher.Patcher(_table, fileName);
 
 			// generate meshes and save (pbr) materials
 			var materials = new Dictionary<string, PbrMaterial>();
@@ -81,7 +77,6 @@ namespace VisualPinball.Unity.Import
 
 			// import
 			ImportTextures();
-			ImportMaterials(materials);
 			ImportGameItems();
 
 			// set root transformation
@@ -90,38 +85,43 @@ namespace VisualPinball.Unity.Import
 			go.transform.localScale = new Vector3(GlobalScale, GlobalScale, GlobalScale);
 			//ScaleNormalizer.Normalize(go, GlobalScale);
 
-			MakeSerializable(go, table, assetHandler);
-
 			// finally, add the player script
 			go.AddComponent<Player>();
 		}
 
-		private void ImportTextures()
+		public static void ImportRenderObject(IRenderable item, RenderObject ro, GameObject obj, TableBehavior table)
 		{
-			// import textures
-			var textureImporter = new TextureImporter(
-				_table.Textures.Values.Concat(Texture.LocalTextures).ToArray(),
-				_assetHandler
-			);
-			textureImporter.ImportTextures();
+			if (ro.Mesh == null) {
+				Logger.Warn($"No mesh for object {obj.name}, skipping.");
+				return;
+			}
+
+			var mesh = ro.Mesh.ToUnityMesh($"{obj.name}_mesh");
+
+			// apply mesh to game object
+			var mf = obj.AddComponent<MeshFilter>();
+			mf.sharedMesh = mesh;
+
+			// apply material
+			var mr = obj.AddComponent<MeshRenderer>();
+			mr.sharedMaterial = ro.Material.ToUnityMaterial(table);
+			mr.enabled = ro.IsVisible;
+
+			// patch
+			table.Patcher.ApplyPatches(item, ro, obj);
 		}
 
-		private void ImportMaterials(Dictionary<string, PbrMaterial> materials)
+		private void ImportTextures()
 		{
-			// import materials
-			var materialImporter = new MaterialImporter(
-				materials.Values.ToArray(),
-				_assetHandler
-			);
-			materialImporter.ImportMaterials();
+			foreach (var kvp in _table.Textures) {
+				_tb.AddTexture(kvp.Key, kvp.Value.ToUnityTexture());
+			}
 		}
 
 		private void ImportGameItems()
 		{
-
 			// import game objects
 			ImportRenderables();
-			_assetHandler.OnMeshesImported(gameObject);
 		}
 
 		private void ImportRenderables()
@@ -143,13 +143,13 @@ namespace VisualPinball.Unity.Import
 			obj.transform.parent = parent.transform;
 
 			if (rog.HasOnlyChild && !rog.ForceChild) {
-				ImportRenderObject(item, rog.RenderObjects[0], obj);
+				ImportRenderObject(item, rog.RenderObjects[0], obj, _tb);
 			} else if (rog.HasChildren) {
 				foreach (var ro in rog.RenderObjects) {
 					var subObj = new GameObject(ro.Name);
-					subObj.transform.parent = obj.transform;
+					subObj.transform.SetParent(obj.transform, false);
 					subObj.layer = ChildObjectsLayer;
-					ImportRenderObject(item, ro, subObj);
+					ImportRenderObject(item, ro, subObj, _tb);
 				}
 			}
 
@@ -174,7 +174,7 @@ namespace VisualPinball.Unity.Import
 				case Spinner spinner:				ic = spinner.SetupGameObject(obj, rog); break;
 				case Surface surface:				ic = surface.SetupGameObject(obj, rog); break;
 				case Table table:					ic = table.SetupGameObject(obj, rog); break;
-				case Trigger trigger:				ic = obj.AddComponent<TriggerBehavior>().SetData(trigger.Data); break;
+				case Trigger trigger:				ic = trigger.SetupGameObject(obj, rog); break;
 			}
 #if UNITY_EDITOR
 			// for convenience move item behavior to the top of the list
@@ -186,56 +186,33 @@ namespace VisualPinball.Unity.Import
 			}
 #endif
 		}
-		private void ImportRenderObject(IRenderable item, RenderObject ro, GameObject obj)
-		{
-			if (ro.Mesh == null) {
-				Logger.Warn($"No mesh for object {obj.name}, skipping.");
-				return;
-			}
 
-			var mesh = ro.Mesh.ToUnityMesh($"{obj.name}_mesh");
-
-			// apply mesh to game object
-			var mf = obj.AddComponent<MeshFilter>();
-			mf.sharedMesh = mesh;
-
-			// apply material
-			var mr = obj.AddComponent<MeshRenderer>();
-			mr.sharedMaterial = _assetHandler.LoadMaterial(ro.Material);
-			mr.enabled = ro.IsVisible;
-
-			// patch
-			_patcher.ApplyPatches(item, ro, obj);
-
-			// add mesh to asset
-			_assetHandler.SaveMesh(mesh, item.Name);
-		}
-
-		private void MakeSerializable(GameObject go, Table table, IAssetHandler assetHandler)
+		private void MakeSerializable(GameObject go, Table table)
 		{
 			// add table component (plus other data)
-			var component = go.AddComponent<TableBehavior>();
-			component.AssetHandler = assetHandler;
-			component.SetData(table.Data);
+			_tb = go.AddComponent<TableBehavior>();
+			_tb.SetData(table.Data);
+
+			var sidecar = _tb.GetOrCreateSidecar();
+
 			foreach (var key in table.TableInfo.Keys) {
-				component.tableInfo[key] = table.TableInfo[key];
+				sidecar.tableInfo[key] = table.TableInfo[key];
 			}
-			component.textureFolder = assetHandler.TextureFolder;
-			component.textures = table.Textures.Values.Select(d => d.Data).ToArray();
-			component.customInfoTags = table.CustomInfoTags;
-			component.collections = table.Collections.Values.Select(c => c.Data).ToArray();
-			component.decals = table.Decals.Select(d => d.Data).ToArray();
-			component.dispReels = table.DispReels.Values.Select(d => d.Data).ToArray();
-			component.flashers = table.Flashers.Values.Select(d => d.Data).ToArray();
-			component.lightSeqs = table.LightSeqs.Values.Select(d => d.Data).ToArray();
-			component.plungers = table.Plungers.Values.Select(d => d.Data).ToArray();
-			component.sounds = table.Sounds.Values.Select(d => d.Data).ToArray();
-			component.textBoxes = table.TextBoxes.Values.Select(d => d.Data).ToArray();
-			component.timers = table.Timers.Values.Select(d => d.Data).ToArray();
+			sidecar.textures = table.Textures.Values.Select(d => d.Data).ToArray();
+			sidecar.customInfoTags = table.CustomInfoTags;
+			sidecar.collections = table.Collections.Values.Select(c => c.Data).ToArray();
+			sidecar.decals = table.Decals.Select(d => d.Data).ToArray();
+			sidecar.dispReels = table.DispReels.Values.Select(d => d.Data).ToArray();
+			sidecar.flashers = table.Flashers.Values.Select(d => d.Data).ToArray();
+			sidecar.lightSeqs = table.LightSeqs.Values.Select(d => d.Data).ToArray();
+			sidecar.plungers = table.Plungers.Values.Select(d => d.Data).ToArray();
+			sidecar.sounds = table.Sounds.Values.Select(d => d.Data).ToArray();
+			sidecar.textBoxes = table.TextBoxes.Values.Select(d => d.Data).ToArray();
+			sidecar.timers = table.Timers.Values.Select(d => d.Data).ToArray();
 
 			Logger.Info("Collections saved: [ {0} ] [ {1} ]",
 				string.Join(", ", table.Collections.Keys),
-				string.Join(", ", component.collections.Select(c => c.Name))
+				string.Join(", ", sidecar.collections.Select(c => c.Name))
 			);
 		}
 	}

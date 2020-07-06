@@ -4,17 +4,35 @@
 // ReSharper disable MemberCanBePrivate.Global
 #endregion
 
+using System.Collections.Generic;
+using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Trigger;
 using VisualPinball.Unity.Extensions;
+using VisualPinball.Unity.VPT.Table;
 
 namespace VisualPinball.Unity.VPT.Trigger
 {
 	[AddComponentMenu("Visual Pinball/Trigger")]
-	public class TriggerBehavior : ItemBehavior<Engine.VPT.Trigger.Trigger, TriggerData>, IDragPointsEditable
+	public class TriggerBehavior : ItemBehavior<Engine.VPT.Trigger.Trigger, TriggerData>, IDragPointsEditable, IConvertGameObjectToEntity
 	{
 		protected override string[] Children => null;
+
+		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
+		{
+			Convert(entity, dstManager);
+
+			var table = gameObject.GetComponentInParent<TableBehavior>().Item;
+			dstManager.AddComponentData(entity, new TriggerAnimationData());
+			dstManager.AddComponentData(entity, new TriggerMovementData());
+			dstManager.AddComponentData(entity, new TriggerStaticData {
+				AnimSpeed = data.AnimSpeed,
+				Radius = data.Radius,
+				Shape = data.Shape,
+				TableScaleZ = table.GetScaleZ()
+			});
+		}
 
 		protected override Engine.VPT.Trigger.Trigger GetItem()
 		{
@@ -31,9 +49,12 @@ namespace VisualPinball.Unity.VPT.Trigger
 
 		//IDragPointsEditable
 		public bool DragPointEditEnabled { get; set; }
-		public DragPointData[] GetDragPoints() { return data.DragPoints; }
-		public void SetDragPoints(DragPointData[] dpoints) { data.DragPoints = dpoints; }
-		public Vector3 GetEditableOffset() { return new Vector3(-data.Center.X, -data.Center.Y, 0.0f); }
-		public bool PointsAreLooping() { return true; }
+		public DragPointData[] GetDragPoints() => data.DragPoints;
+		public void SetDragPoints(DragPointData[] dragPoints) { data.DragPoints = dragPoints; }
+		public Vector3 GetEditableOffset() => new Vector3(-data.Center.X, -data.Center.Y, 0.0f);
+		public Vector3 GetDragPointOffset(float ratio) => Vector3.zero;
+		public bool PointsAreLooping() => true;
+		public IEnumerable<DragPointExposure> GetDragPointExposition() => new[] { DragPointExposure.Smooth, DragPointExposure.SlingShot };
+		public ItemDataTransformType GetHandleType() => ItemDataTransformType.TwoD;
 	}
 }

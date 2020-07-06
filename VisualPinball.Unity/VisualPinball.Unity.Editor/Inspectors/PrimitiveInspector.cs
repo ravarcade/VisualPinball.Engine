@@ -1,5 +1,10 @@
 ﻿using UnityEditor;
+using UnityEngine;
+using VisualPinball.Engine.Game;
+using VisualPinball.Engine.VPT;
+using VisualPinball.Unity.Extensions;
 using VisualPinball.Unity.VPT.Primitive;
+using VisualPinball.Unity.VPT.Table;
 
 namespace VisualPinball.Unity.Editor.Inspectors
 {
@@ -7,6 +12,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 	public class PrimitiveInspector : ItemInspector
 	{
 		private PrimitiveBehavior _prim;
+		private bool _foldoutColorsAndFormatting = true;
 		private bool _foldoutPosition = true;
 		private bool _foldoutPhysics = true;
 
@@ -18,6 +24,25 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 		public override void OnInspectorGUI()
 		{
+			base.OnPreInspectorGUI();
+
+			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
+				GUILayout.BeginHorizontal();
+				MeshImporterGui();
+				if (GUILayout.Button("Export Mesh")) ExportMesh();
+				GUILayout.EndHorizontal();
+
+				TextureField("Image", ref _prim.data.Image);
+				TextureField("Normal Map", ref _prim.data.NormalMap);
+				EditorGUI.indentLevel++;
+				ItemDataField("Object Space", ref _prim.data.ObjectSpaceNormalMap);
+				EditorGUI.indentLevel--;
+				MaterialField("Material", ref _prim.data.Material);
+
+				ItemDataField("Visible", ref _prim.data.IsVisible);
+			}
+			EditorGUILayout.EndFoldoutHeaderGroup();
+
 			if (_foldoutPosition = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPosition, "Position & Translation")) {
 				EditorGUILayout.LabelField("Base Position");
 				EditorGUI.indentLevel++;
@@ -53,7 +78,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 				EditorGUI.EndDisabledGroup();
 
 				EditorGUI.BeginDisabledGroup(_prim.data.OverwritePhysics);
-				ItemDataField("Physics Material", ref _prim.data.PhysicsMaterial, dirtyMesh: false);
+				MaterialField("Physics Material", ref _prim.data.PhysicsMaterial, dirtyMesh: false);
 				EditorGUI.EndDisabledGroup();
 				ItemDataField("Overwrite Material Settings", ref _prim.data.OverwritePhysics, dirtyMesh: false);
 				EditorGUI.BeginDisabledGroup(!_prim.data.OverwritePhysics);
@@ -78,6 +103,38 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			base.OnInspectorGUI();
+		}
+
+		/// <summary>
+		/// Shows a gui to bring a unity mesh into the table data. This immediately "bakes" right in the VPX data structures
+		/// </summary>
+		private void MeshImporterGui()
+		{
+			EditorGUI.BeginChangeCheck();
+			var mesh = (UnityEngine.Mesh)EditorGUILayout.ObjectField("Import Mesh", null, typeof(UnityEngine.Mesh), false);
+			if (mesh != null && EditorGUI.EndChangeCheck()) {
+				FinishEdit("Import Mesh", true);
+				_prim.data.Use3DMesh = true;
+				_prim.data.Mesh = mesh.ToVpMesh();
+			}
+		}
+
+		/// <summary>
+		/// Pop a dialog to save the primitive's mesh as a unity asset
+		/// </summary>
+		private void ExportMesh()
+		{
+			var table = _prim.GetComponentInParent<TableBehavior>();
+			if (table != null) {
+				var rog = _prim.Item.GetRenderObjects(table.Table, Origin.Original, false);
+				if (rog != null && rog.RenderObjects.Length > 0) {
+					var unityMesh = rog.RenderObjects[0].Mesh?.ToUnityMesh(_prim.name);
+					if (unityMesh != null) {
+						string savePath = EditorUtility.SaveFilePanelInProject("Export Mesh", _prim.name, "asset", "Export Mesh");
+						AssetDatabase.CreateAsset(unityMesh, savePath);
+					}
+				}
+			}
 		}
 	}
 }

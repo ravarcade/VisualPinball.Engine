@@ -1,4 +1,5 @@
 ﻿using UnityEditor;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Unity.VPT.Gate;
 
 namespace VisualPinball.Unity.Editor.Inspectors
@@ -12,6 +13,9 @@ namespace VisualPinball.Unity.Editor.Inspectors
 		private bool _foldoutPhysics = true;
 		private bool _foldoutMisc = true;
 
+		private static string[] _gateTypeStrings = { "Wire: 'W'", "Wire: Rectangle", "Plate", "Long Plate" };
+		private static int[] _gateTypeValues = { GateType.GateWireW, GateType.GateWireRectangle, GateType.GatePlate, GateType.GateLongPlate };
+
 		protected override void OnEnable()
 		{
 			base.OnEnable();
@@ -20,10 +24,13 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 		public override void OnInspectorGUI()
 		{
+			base.OnPreInspectorGUI();
+
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
+				DropDownField("Type", ref _gate.data.GateType, _gateTypeStrings, _gateTypeValues);
 				ItemDataField("Visible", ref _gate.data.IsVisible);
 				ItemDataField("Show Bracket", ref _gate.data.ShowBracket);
-				ItemDataField("Reflection Enabled", ref _gate.data.IsReflectionEnabled);
+				MaterialField("Material", ref _gate.data.Material);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 

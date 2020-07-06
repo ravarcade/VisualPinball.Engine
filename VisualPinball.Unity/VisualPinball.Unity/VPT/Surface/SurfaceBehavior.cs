@@ -4,6 +4,7 @@
 // ReSharper disable MemberCanBePrivate.Global
 #endregion
 
+using System.Collections.Generic;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Math;
@@ -56,9 +57,12 @@ namespace VisualPinball.Unity.VPT.Surface
 
 		//IDragPointsEditable
 		public bool DragPointEditEnabled { get; set; }
-		public DragPointData[] GetDragPoints() { return data.DragPoints; }
-		public void SetDragPoints(DragPointData[] dpoints) { data.DragPoints = dpoints; }
-		public Vector3 GetEditableOffset() { return new Vector3(); }
-		public bool PointsAreLooping() { return true; }
+		public DragPointData[] GetDragPoints() => data.DragPoints;
+		public void SetDragPoints(DragPointData[] dragPoints) { data.DragPoints = dragPoints; }
+		public Vector3 GetEditableOffset() => new Vector3(0.0f, 0.0f, data.HeightBottom);
+		public Vector3 GetDragPointOffset(float ratio) => Vector3.zero;
+		public bool PointsAreLooping() => true;
+		public IEnumerable<DragPointExposure> GetDragPointExposition() => new[] { DragPointExposure.Smooth , DragPointExposure.SlingShot , DragPointExposure.Texture };
+		public ItemDataTransformType GetHandleType() => ItemDataTransformType.TwoD;
 	}
 }

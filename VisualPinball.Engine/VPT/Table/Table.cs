@@ -98,18 +98,22 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(Flippers.Values)
 			.Concat(Gates.Values)
 			.Concat(Plungers.Values)
+			.Concat(Ramps.Values)
 			.Concat(Rubbers.Values)
 			.Concat(Spinners.Values)
-			.Concat(Surfaces.Values);
+			.Concat(Surfaces.Values)
+			.Concat(Triggers.Values);
 
 		public IEnumerable<IPlayable> Playables => new IPlayable[0]
 			.Concat(Bumpers.Values)
 			.Concat(Flippers.Values)
 			.Concat(Gates.Values)
 			.Concat(Plungers.Values)
+			.Concat(Ramps.Values)
 			.Concat(Rubbers.Values)
 			.Concat(Spinners.Values)
-			.Concat(Surfaces.Values);
+			.Concat(Surfaces.Values)
+			.Concat(Triggers.Values);
 
 		#endregion
 
