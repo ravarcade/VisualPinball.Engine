@@ -16,8 +16,10 @@ namespace VisualPinball.Engine.VPT
 	[Serializable]
 	public class TextureData : ItemData
 	{
-		public override string GetName() => Name;
 		public bool HasBitmap => Bitmap != null && Bitmap.Data != null && Bitmap.Data.Length > 0;
+
+		public override string GetName() => Name;
+		public override void SetName(string name) { Name = name; }
 
 		[BiffString("NAME", HasExplicitLength = true, Pos = 1)]
 		public string Name;
@@ -54,6 +56,8 @@ namespace VisualPinball.Engine.VPT
 			switch (attr.Name) {
 				case "LOCK":
 				case "LAYR":
+				case "LANR":
+				case "LVIS":
 					return true;
 			}
 			return false;
@@ -73,7 +77,7 @@ namespace VisualPinball.Engine.VPT
 
 		public override void Write(BinaryWriter writer, HashWriter hashWriter)
 		{
-			Write(writer, Attributes, hashWriter);
+			WriteRecord(writer, Attributes, hashWriter);
 			WriteEnd(writer, hashWriter);
 		}
 
@@ -96,6 +100,11 @@ namespace VisualPinball.Engine.VPT
 		public override void Write<TItem>(TItem obj, BinaryWriter writer, HashWriter hashWriter)
 		{
 			if (Type == typeof(BinaryData)) {
+				if (obj is TextureData textureData) {
+					if (textureData.HasBitmap) {
+						return;
+					}
+				}
 				if (!(GetValue(obj) is BinaryData data)) {
 					return;
 				}
@@ -122,6 +131,11 @@ namespace VisualPinball.Engine.VPT
 		public override void Write<TItem>(TItem obj, BinaryWriter writer, HashWriter hashWriter)
 		{
 			if (Type == typeof(Bitmap)) {
+				if (obj is TextureData textureData) {
+					if (!textureData.HasBitmap) {
+						return;
+					}
+				}
 				if (!(GetValue(obj) is Bitmap bitmap)) {
 					return;
 				}

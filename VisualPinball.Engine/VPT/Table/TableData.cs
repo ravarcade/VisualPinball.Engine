@@ -17,6 +17,8 @@ namespace VisualPinball.Engine.VPT.Table
 	public class TableData : ItemData
 	{
 		public override string GetName() => Name;
+		public override void SetName(string name) { Name = name; }
+
 
 		[BiffString("NAME", IsWideString = true, Pos = 112)]
 		public string Name;
@@ -336,6 +338,8 @@ namespace VisualPinball.Engine.VPT.Table
 			switch (attr.Name) {
 				case "LOCK":
 				case "LAYR":
+				case "LANR":
+				case "LVIS":
 					return true;
 			}
 			return false;
@@ -359,7 +363,7 @@ namespace VisualPinball.Engine.VPT.Table
 
 		public override void Write(BinaryWriter writer, HashWriter hashWriter)
 		{
-			Write(writer, Attributes, hashWriter);
+			WriteRecord(writer, Attributes, hashWriter);
 			WriteEnd(writer, hashWriter);
 		}
 
@@ -405,6 +409,7 @@ namespace VisualPinball.Engine.VPT.Table
 					if (IsPhysics) {
 						material.PhysicsMaterialData.Write(dataWriter);
 					} else {
+						material.UpdateData();
 						material.MaterialData.Write(dataWriter);
 					}
 				}

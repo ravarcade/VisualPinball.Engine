@@ -20,7 +20,14 @@ namespace VisualPinball.Engine.VPT
 		[BiffInt("LAYR", Pos = 1001)]
 		public int EditorLayer;
 
+		[BiffString("LANR", Pos = 1002)]
+		public string EditorLayerName  = string.Empty;
+
+		[BiffBool("LVIS", Pos = 1003)]
+		public bool EditorLayerVisibility = true;
+
 		public abstract string GetName();
+		public abstract void SetName(string name);
 
 		protected ItemData(string storageName) : base(storageName) { }
 	}
