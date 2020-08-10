@@ -53,14 +53,32 @@ namespace VisualPinball.Unity.Import
 
 		private Table _table;
 		private TableBehavior _tb;
+		private bool _applyPatch = true;
 
-		public void Import(string fileName, Table table)
+		public void Import(string fileName, Table table, bool applyPatch = true, string tableName = null)
 		{
 			_table = table;
 
+			// TODO: implement disabling patching; not so obvious because of the static methods being used for the import
+			if( !applyPatch)
+				Logger.Warn("Disabling patch import not implemented yet!");
+
 			var go = gameObject;
-			go.name = _table.Name;
+
 			MakeSerializable(go, table);
+
+			// set the gameobject name; this needs to happen after MakeSerializable because the name is set there as well
+			if( string.IsNullOrEmpty( tableName))
+			{
+				go.name = _table.Name;
+			}
+			else
+			{
+				go.name = tableName
+					.Replace("%TABLENAME%", _table.Name)
+					.Replace("%INFONAME%", _table.InfoName);
+			}
+
 
 			_tb.Patcher = new Patcher.Patcher.Patcher(_table, fileName);
 
