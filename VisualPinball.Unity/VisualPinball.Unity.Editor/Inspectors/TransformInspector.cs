@@ -1,12 +1,27 @@
+// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
-using VisualPinball.Unity.Editor.Utils;
-using VisualPinball.Unity.VPT;
 
-namespace VisualPinball.Unity.Editor.Inspectors
+
+namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(Transform))]
 	[CanEditMultipleObjects]
@@ -14,7 +29,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 	{
 		private UnityEditor.Editor _defaultEditor;
 		private Transform _transform;
-		private IEditableItemBehavior _primaryItem;
+		private IEditableItemAuthoring _primaryItem;
 		private List<SecondaryItem> _secondaryItems = new List<SecondaryItem>();
 		private ItemDataTransformType _positionType = ItemDataTransformType.ThreeD;
 		private ItemDataTransformType _rotationType = ItemDataTransformType.ThreeD;
@@ -33,7 +48,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 			bool useDefault = true;
 			foreach (var t in targets) {
-				var item = (t as Transform)?.GetComponent<IEditableItemBehavior>();
+				var item = (t as Transform)?.GetComponent<IEditableItemAuthoring>();
 				if (item != null) {
 					useDefault = false;
 					if (_primaryItem == null) {
@@ -148,7 +163,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 				handlePos = _transform.parent.TransformPoint(handlePos);
 			}
 
-			Handles.color = UnityEngine.Color.red;
+			Handles.color = Color.red;
 			Handles.Button(handlePos, Quaternion.identity, HandleUtility.GetHandleSize(handlePos) * 0.25f, HandleUtility.GetHandleSize(handlePos) * 0.25f, Handles.SphereHandleCap);
 			Handles.Label(handlePos + Vector3.right * HandleUtility.GetHandleSize(handlePos) * 0.3f, "LOCKED");
 		}
@@ -206,9 +221,9 @@ namespace VisualPinball.Unity.Editor.Inspectors
 					if (EditorGUI.EndChangeCheck()) {
 						// check which axis had the biggest change (they'll all change slightly due to float precision)
 						// and pause that axis' local rotation so the gizmo doesn't flip out
-						float xDiff = Math.Abs(rotX.eulerAngles.y - currentRot.x);
-						float yDiff = Math.Abs(rotY.eulerAngles.y - currentRot.y);
-						float zDiff = Math.Abs(rotZ.eulerAngles.y - currentRot.z);
+						float xDiff = System.Math.Abs(rotX.eulerAngles.y - currentRot.x);
+						float yDiff = System.Math.Abs(rotY.eulerAngles.y - currentRot.y);
+						float zDiff = System.Math.Abs(rotZ.eulerAngles.y - currentRot.z);
 						if (_pauseAxisX == null && xDiff > yDiff && xDiff > zDiff) {
 							_pauseAxisX = currentRotTran;
 						} else if (_pauseAxisY == null && yDiff > xDiff && yDiff > zDiff) {
@@ -333,7 +348,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 		private class SecondaryItem
 		{
 			public Transform Transform;
-			public IEditableItemBehavior Item;
+			public IEditableItemAuthoring Item;
 			public Vector3 Offset;
 		}
 	}

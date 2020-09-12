@@ -1,14 +1,28 @@
-﻿using UnityEditor;
-using VisualPinball.Engine.VPT;
-using VisualPinball.Unity.Editor.DragPoint;
-using VisualPinball.Unity.VPT.Ramp;
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-namespace VisualPinball.Unity.Editor.Inspectors
+using UnityEditor;
+using VisualPinball.Engine.VPT;
+
+namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(RampBehavior))]
+	[CustomEditor(typeof(RampAuthoring))]
 	public class RampInspector : DragPointsItemInspector
 	{
-		private RampBehavior _ramp;
+		private RampAuthoring _ramp;
 		private bool _foldoutColorsAndFormatting = true;
 		private bool _foldoutPosition = true;
 		private bool _foldoutPhysics = true;
@@ -42,12 +56,12 @@ namespace VisualPinball.Unity.Editor.Inspectors
 		protected override void OnEnable()
 		{
 			base.OnEnable();
-			_ramp = target as RampBehavior;
+			_ramp = target as RampAuthoring;
 		}
 
 		public override void OnInspectorGUI()
 		{
-			base.OnPreInspectorGUI();
+			OnPreInspectorGUI();
 
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
 				DropDownField("Type", ref _ramp.data.RampType, _rampTypeStrings, _rampTypeValues);
@@ -63,11 +77,11 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			if (_foldoutPosition = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPosition, "Position")) {
 				ItemDataField("Top Height", ref _ramp.data.HeightTop);
 				ItemDataField("Bottom Height", ref _ramp.data.HeightBottom);
-				
+
 				EditorGUILayout.Space(10);
 				ItemDataField("Top Width", ref _ramp.data.WidthTop);
 				ItemDataField("Bottom Width", ref _ramp.data.WidthBottom);
-				
+
 				EditorGUILayout.Space(10);
 				EditorGUILayout.LabelField("Visible Wall");
 				EditorGUI.indentLevel++;

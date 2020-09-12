@@ -1,15 +1,30 @@
-﻿using System.Collections.Generic;
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using System.Collections.Generic;
 using NLog;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Physics;
-using VisualPinball.Unity.VPT.Table;
 using Logger = NLog.Logger;
 
-namespace VisualPinball.Unity.Physics.Collision
+namespace VisualPinball.Unity
 {
 	[UpdateInGroup(typeof(GameObjectAfterConversionGroup))]
-	public class QuadTreeConversionSystem : GameObjectConversionSystem
+	internal class QuadTreeConversionSystem : GameObjectConversionSystem
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -20,7 +35,7 @@ namespace VisualPinball.Unity.Physics.Collision
 				return;
 			}
 
-			var table = Object.FindObjectOfType<TableBehavior>().Table;
+			var table = Object.FindObjectOfType<TableAuthoring>().Table;
 
 			foreach (var playable in table.Playables) {
 				playable.Init(table);
@@ -31,8 +46,7 @@ namespace VisualPinball.Unity.Physics.Collision
 			var id = 0;
 			foreach (var item in table.Hittables) {
 				foreach (var hitObject in item.GetHitShapes()) {
-					hitObject.ItemIndex = item.Index;
-					hitObject.ItemVersion = item.Version;
+					hitObject.SetIndex(item.Index, item.Version);
 					hitObject.Id = id++;
 					hitObject.CalcHitBBox();
 					hitObjects.Add(hitObject);
@@ -40,7 +54,7 @@ namespace VisualPinball.Unity.Physics.Collision
 			}
 
 			// construct quad tree
-			var quadTree = new HitQuadTree(hitObjects, table.Data.BoundingBox);
+			var quadTree = new Engine.Physics.QuadTree(hitObjects, table.BoundingBox);
 			var quadTreeBlobAssetRef = QuadTreeBlob.CreateBlobAssetReference(
 				quadTree,
 				table.GeneratePlayfieldHit(), // todo use `null` if separate playfield mesh exists

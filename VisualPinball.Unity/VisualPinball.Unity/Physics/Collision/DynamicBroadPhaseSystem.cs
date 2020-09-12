@@ -1,12 +1,27 @@
-﻿using Unity.Collections;
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Profiling;
-using VisualPinball.Unity.VPT.Ball;
 
-namespace VisualPinball.Unity.Physics.Collision
+namespace VisualPinball.Unity
 {
 	[DisableAutoCreation]
-	public class DynamicBroadPhaseSystem : SystemBase
+	internal class DynamicBroadPhaseSystem : SystemBase
 	{
 		private EntityQuery _ballQuery;
 		private static readonly ProfilerMarker PerfMarker1 = new ProfilerMarker("DynamicBroadPhaseSystem.CreateKdTree");
@@ -42,6 +57,11 @@ namespace VisualPinball.Unity.Physics.Collision
 				.WithName("StaticBroadPhaseJob")
 				.WithNativeDisableParallelForRestriction(overlappingEntities)
 				.ForEach((Entity entity, in BallData ball) => {
+
+					// don't play with frozen balls
+					if (ball.IsFrozen) {
+						return;
+					}
 
 					marker.Begin();
 

@@ -1,6 +1,20 @@
-using VisualPinball.Engine.Game;
+// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using VisualPinball.Engine.Math;
-using VisualPinball.Engine.Physics;
 
 namespace VisualPinball.Engine.VPT.Ball
 {
@@ -10,19 +24,12 @@ namespace VisualPinball.Engine.VPT.Ball
 		public string Name => Data.GetName();
 
 		public readonly BallData Data;
-		public readonly BallState State;
-		public readonly BallHit Hit;
 
 		public static uint IdCounter = 0;
 
-		public CollisionEvent Coll => Hit.Coll;
-		public BallMover Mover => Hit.GetMoverObject();
-
-		public Ball(BallData data, BallState state, Vertex3D initialVelocity, Player player, Table.Table table)
+		public Ball(BallData data, Vertex3D initialVelocity, Table.Table table)
 		{
 			Data = data;
-			State = state;
-			Hit = new BallHit(this, data, state, initialVelocity, table.Data);
 		}
 	}
 }

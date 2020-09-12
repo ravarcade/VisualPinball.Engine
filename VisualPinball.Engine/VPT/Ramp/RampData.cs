@@ -1,3 +1,19 @@
+// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 #region ReSharper
 // ReSharper disable UnassignedField.Global
 // ReSharper disable StringLiteralTypo
@@ -80,14 +96,17 @@ namespace VisualPinball.Engine.VPT.Ramp
 		[BiffFloat("RSCT", Pos = 21)]
 		public float Scatter;
 
+		[TextureReference]
 		[BiffString("IMAG", Pos = 10)]
-		public string Image;
+		public string Image = string.Empty;
 
+		[MaterialReference]
 		[BiffString("MATR", Pos = 5)]
-		public string Material;
+		public string Material = string.Empty;
 
+		[MaterialReference]
 		[BiffString("MAPH", Pos = 29)]
-		public string PhysicsMaterial;
+		public string PhysicsMaterial = string.Empty;
 
 		[BiffFloat("THRS", Pos = 18)]
 		public float Threshold;
@@ -115,6 +134,12 @@ namespace VisualPinball.Engine.VPT.Ramp
 
 		[BiffTag("PNTS", Pos = 1999)]
 		public bool Points;
+
+		public RampData(string name, DragPointData[] dragPoints) : base(StoragePrefix.GameItem)
+		{
+			Name = name;
+			DragPoints = dragPoints;
+		}
 
 		#region BIFF
 

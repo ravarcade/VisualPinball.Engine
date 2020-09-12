@@ -1,3 +1,19 @@
+// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 #region ReSharper
 // ReSharper disable UnassignedField.Global
 // ReSharper disable StringLiteralTypo
@@ -43,13 +59,13 @@ namespace VisualPinball.Engine.VPT.Light
 		public Color Color2 = new Color(0xffffff, ColorFormat.Argb);
 
 		[BiffString("IMG1", Pos = 10)]
-		public string OffImage;
+		public string OffImage = string.Empty;
 
 		[BiffBool("SHAP", SkipWrite = true)]
 		public bool IsRoundLight = false;
 
 		[BiffString("BPAT", Pos = 9)]
-		public string BlinkPattern = "0";
+		public string BlinkPattern = "10";
 
 		[BiffInt("BINT", Pos = 11)]
 		public int BlinkInterval = 125;
@@ -58,10 +74,10 @@ namespace VisualPinball.Engine.VPT.Light
 		public float Intensity = 1f;
 
 		[BiffFloat("TRMS", Pos = 13)]
-		public float TransmissionScale = 0f;
+		public float TransmissionScale = 0.5f;
 
 		[BiffString("SURF", Pos = 14)]
-		public string Surface;
+		public string Surface = string.Empty;
 
 		[BiffBool("BGLS", Pos = 16)]
 		public bool IsBackglass = false;
@@ -85,7 +101,7 @@ namespace VisualPinball.Engine.VPT.Light
 		public bool ShowBulbMesh = false;
 
 		[BiffBool("STBM", Pos = 22)]
-		public bool HasStaticBulbMesh = false;
+		public bool HasStaticBulbMesh = true;
 
 		[BiffBool("SHRB", Pos = 23)]
 		public bool ShowReflectionOnBall = true;
@@ -118,6 +134,12 @@ namespace VisualPinball.Engine.VPT.Light
 		public LightData(BinaryReader reader, string storageName) : base(storageName)
 		{
 			Load(this, reader, Attributes);
+		}
+
+		public LightData(string name, float x, float y) : base(StoragePrefix.GameItem)
+		{
+			Name = name;
+			Center = new Vertex2D(x, y);
 		}
 
 		public override void Write(BinaryWriter writer, HashWriter hashWriter)

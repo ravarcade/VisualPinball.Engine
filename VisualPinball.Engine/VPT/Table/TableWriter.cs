@@ -1,4 +1,20 @@
-﻿using System;
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using System;
 using System.Linq;
 using OpenMcdf;
 using VisualPinball.Engine.IO;
@@ -100,14 +116,18 @@ namespace VisualPinball.Engine.VPT.Table
 
 		private void WriteImages()
 		{
+			int i = 0;
 			foreach (var texture in _table.Textures.Values) {
+				texture.Data.StorageIndex = i++;
 				texture.Data.WriteData(_gameStorage);
 			}
 		}
 
 		private void WriteSounds()
 		{
+			int i = 0;
 			foreach (var sound in _table.Sounds.Values) {
+				sound.Data.StorageIndex = i++;
 				sound.Data.WriteData(_gameStorage);
 			}
 		}

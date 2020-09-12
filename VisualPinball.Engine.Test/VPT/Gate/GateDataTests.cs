@@ -1,4 +1,20 @@
-﻿using FluentAssertions;
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using FluentAssertions;
 using NUnit.Framework;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Test.Test;
@@ -13,7 +29,7 @@ namespace VisualPinball.Engine.Test.VPT.Gate
 		public void ShouldReadGateData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Gate);
-			ValidateGateData(table.Gates["Data"].Data);
+			ValidateGateData(table.Gate("Data").Data);
 		}
 
 		[Test]
@@ -23,7 +39,7 @@ namespace VisualPinball.Engine.Test.VPT.Gate
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Gate);
 			table.Save(tmpFileName);
 			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
-			ValidateGateData(writtenTable.Gates["Data"].Data);
+			ValidateGateData(writtenTable.Gate("Data").Data);
 		}
 
 		private static void ValidateGateData(GateData data)

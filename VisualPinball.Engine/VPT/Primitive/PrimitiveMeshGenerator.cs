@@ -1,4 +1,20 @@
-﻿using System;
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using System;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
@@ -21,11 +37,11 @@ namespace VisualPinball.Engine.VPT.Primitive
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded = true,
 			string parent = null, PbrMaterial material = null)
 		{
-			var (preVertexMatrix, preNormalsMatrix) = GetPreMatrix(table, origin, asRightHanded);
+
 			var postMatrix = GetPostMatrix(table, origin);
 			return new RenderObjectGroup(_data.Name, parent ?? "Primitives", postMatrix, new RenderObject(
 				_data.Name,
-				GetMesh().Transform(preVertexMatrix, preNormalsMatrix),
+				GetTransformedMesh(table, origin, asRightHanded),
 				material ?? new PbrMaterial(
 					table.GetMaterial(_data.Material),
 					table.GetTexture(_data.Image),
@@ -40,9 +56,15 @@ namespace VisualPinball.Engine.VPT.Primitive
 			return !_data.Use3DMesh ? CalculateBuiltinOriginal() : _data.Mesh.Clone();
 		}
 
+		public Mesh GetTransformedMesh(Table.Table table, Origin origin, bool asRightHanded = true)
+		{
+			var (preVertexMatrix, preNormalsMatrix) = GetPreMatrix(table, origin, asRightHanded);
+			return GetMesh().Transform(preVertexMatrix, preNormalsMatrix);
+		}
+
 		protected override float BaseHeight(Table.Table table)
 		{
-			return 0f;
+			return table.TableHeight;
 		}
 
 		protected override Tuple<Matrix3D, Matrix3D> GetTransformationMatrix(Table.Table table)
@@ -53,7 +75,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 
 			// translation matrix
 			var transMatrix = new Matrix3D();
-			transMatrix.SetTranslation(Position.X, Position.Y, Position.Z);
+			transMatrix.SetTranslation(Position.X, Position.Y, Position.Z + table.TableHeight);
 
 			// translation + rotation matrix
 			var rotTransMatrix = new Matrix3D();

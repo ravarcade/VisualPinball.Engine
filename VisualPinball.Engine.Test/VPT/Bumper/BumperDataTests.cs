@@ -1,4 +1,20 @@
-﻿using FluentAssertions;
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using FluentAssertions;
 using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT.Bumper;
@@ -11,7 +27,7 @@ namespace VisualPinball.Engine.Test.VPT.Bumper
 		public void ShouldReadBumperData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Bumper);
-			var data = table.Bumpers["Bumper1"].Data;
+			var data = table.Bumper("Bumper1").Data;
 			ValidateTableData(data);
 		}
 
@@ -22,7 +38,7 @@ namespace VisualPinball.Engine.Test.VPT.Bumper
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Bumper);
 			table.Save(tmpFileName);
 			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
-			ValidateTableData(writtenTable.Bumpers["Bumper1"].Data);
+			ValidateTableData(writtenTable.Bumper("Bumper1").Data);
 		}
 
 		private static void ValidateTableData(BumperData data)

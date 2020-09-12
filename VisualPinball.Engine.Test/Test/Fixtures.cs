@@ -1,3 +1,19 @@
+// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using System.IO;
 using System.Reflection;
 
@@ -21,6 +37,7 @@ namespace VisualPinball.Engine.Test.Test
 		public static readonly string MaterialTexture = PathHelper.GetFixturePath("MaterialTextureTest.vpx");
 		public static readonly string Plunger = PathHelper.GetFixturePath("PlungerTest.vpx");
 		public static readonly string Primitive = PathHelper.GetFixturePath("PrimitiveTest.vpx");
+		public static readonly string PrimitiveAnimated = PathHelper.GetFixturePath("PrimitiveAnimated.vpx");
 		public static readonly string PrimitiveCompressed = PathHelper.GetFixturePath("PrimitiveCompressed.vpx");
 		public static readonly string Ramp = PathHelper.GetFixturePath("RampTest.vpx");
 		public static readonly string Rubber = PathHelper.GetFixturePath("RubberTest.vpx");
@@ -43,6 +60,15 @@ namespace VisualPinball.Engine.Test.Test
 		public static readonly string HitTarget = PathHelper.GetFixturePath("HitTargetTest.obj");
 		public static readonly string Kicker = PathHelper.GetFixturePath("KickerTest.obj");
 		public static readonly string Primitive = PathHelper.GetFixturePath("PrimitiveTest.obj");
+		public static readonly string[] PrimitiveAnimated = {
+			PathHelper.GetFixturePath("PrimitiveAnimated_00000.obj"),
+			PathHelper.GetFixturePath("PrimitiveAnimated_00001.obj"),
+			PathHelper.GetFixturePath("PrimitiveAnimated_00002.obj"),
+			PathHelper.GetFixturePath("PrimitiveAnimated_00003.obj"),
+			PathHelper.GetFixturePath("PrimitiveAnimated_00004.obj"),
+			PathHelper.GetFixturePath("PrimitiveAnimated_00005.obj"),
+			PathHelper.GetFixturePath("PrimitiveAnimated_00006.obj")
+		};
 		public static readonly string PrimitiveCompressed = PathHelper.GetFixturePath("PrimitiveCompressed.obj");
 		public static readonly string Ramp = PathHelper.GetFixturePath("RampTest.obj");
 		public static readonly string Rubber = PathHelper.GetFixturePath("RubberTest.obj");
@@ -76,18 +102,35 @@ namespace VisualPinball.Engine.Test.Test
 		private static string GetTestPath()
 		{
 			var codeBase = new System.Uri(Assembly.GetExecutingAssembly().CodeBase).LocalPath;
-			return codeBase.Contains("/Library/ScriptAssemblies/")
-				? Path.GetFullPath("Packages/org.visualpinball.engine.unity/VisualPinball.Engine.Test")
-				: Path.GetFullPath(
+
+			if (codeBase.Contains("/Library/ScriptAssemblies/"))
+			{
+				return Path.GetFullPath(
+					"Packages/org.visualpinball.engine.unity/VisualPinball.Engine.Test");
+			}
+			else if (codeBase.Contains("VisualPinball.Unity.Test"))
+			{
+				return Path.GetFullPath(
 					Path.Combine(
 						Path.GetDirectoryName(codeBase),
 						"..",
 						"..",
-						".."
-					)
-				);
+						"..",
+						"..",
+						"..",
+						"VisualPinball.Engine.Test")
+					);
+			}
+			else
+			{
+				return Path.GetFullPath(
+					Path.Combine(
+						Path.GetDirectoryName(codeBase),
+						"..",
+						"..",
+						"..")
+					);
+			}
 		}
-
 	}
-
 }

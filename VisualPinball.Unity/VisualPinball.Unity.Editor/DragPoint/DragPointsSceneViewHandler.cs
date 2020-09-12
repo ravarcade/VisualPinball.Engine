@@ -1,13 +1,27 @@
-﻿using System.Collections.Generic;
+// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Math;
-using VisualPinball.Unity.Extensions;
-using VisualPinball.Unity.VPT;
 using Color = UnityEngine.Color;
 
-namespace VisualPinball.Unity.Editor.DragPoint
+namespace VisualPinball.Unity.Editor
 {
 	public class DragPointsSceneViewHandler
 	{
@@ -63,7 +77,7 @@ namespace VisualPinball.Unity.Editor.DragPoint
 				var transformedDPoints = new List<DragPointData>();
 				foreach (var controlPoint in _handler.ControlPoints) {
 					var newDp = new DragPointData(controlPoint.DragPoint) {
-						Vertex = controlPoint.WorldPos.ToVertex3D()
+						Center = controlPoint.WorldPos.ToVertex3D()
 					};
 					transformedDPoints.Add(newDp);
 				}
@@ -72,7 +86,7 @@ namespace VisualPinball.Unity.Editor.DragPoint
 				vAccuracy = _handler.Transform.localToWorldMatrix.MultiplyVector(vAccuracy);
 				var accuracy = Mathf.Abs(vAccuracy.x * vAccuracy.y * vAccuracy.z);
 				accuracy *= HandleUtility.GetHandleSize(_handler.CurveTravellerPosition) * ControlPoint.ScreenRadius;
-				var vVertex = Engine.Math.DragPoint.GetRgVertex<RenderVertex3D, CatmullCurve3DCatmullCurveFactory>(
+				var vVertex = DragPoint.GetRgVertex<RenderVertex3D, CatmullCurve3DCatmullCurveFactory>(
 					transformedDPoints.ToArray(), _handler.DragPointEditable.PointsAreLooping(), accuracy
 				);
 
@@ -98,11 +112,11 @@ namespace VisualPinball.Unity.Editor.DragPoint
 
 					// construct full path
 					_pathPoints.Clear();
-					const float splitRatio = 0.05f;
+					const float splitRatio = 0.1f;
 					foreach (var controlPoint in _handler.ControlPoints) {
 						// Split straight segments to avoid HandleUtility.ClosestPointToPolyLine issues
-						var segments = controlPointsSegments[controlPoint.Index];
-						if (!controlPoint.DragPoint.IsSmooth && segments.Count == 2) {
+						ref var segments = ref controlPointsSegments[controlPoint.Index];
+						if (segments.Count == 2) {
 							var dir = segments[1] - segments[0];
 							var dist = dir.magnitude;
 							dir = Vector3.Normalize(dir);
@@ -118,7 +132,9 @@ namespace VisualPinball.Unity.Editor.DragPoint
 						_pathPoints.AddRange(segments);
 					}
 
-					_handler.CurveTravellerPosition = HandleUtility.ClosestPointToPolyLine(_pathPoints.ToArray());
+					if (_pathPoints.Count > 1) {
+						_handler.CurveTravellerPosition = HandleUtility.ClosestPointToPolyLine(_pathPoints.ToArray());
+					}
 
 					// Render Curve with correct color regarding drag point properties & find curve section where the curve traveller is
 					_handler.CurveTravellerControlPointIdx = -1;
@@ -157,7 +173,7 @@ namespace VisualPinball.Unity.Editor.DragPoint
 						? Color.green
 						: Color.gray;
 
-				Handles.SphereHandleCap(0,
+				Handles.SphereHandleCap(-1,
 					controlPoint.WorldPos,
 					Quaternion.identity,
 					HandleUtility.GetHandleSize(controlPoint.WorldPos) * ControlPoint.ScreenRadius * ControlPointsSizeRatio,

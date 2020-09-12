@@ -1,3 +1,19 @@
+// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 #region ReSharper
 // ReSharper disable UnassignedField.Global
 // ReSharper disable StringLiteralTypo
@@ -54,17 +70,20 @@ namespace VisualPinball.Engine.VPT.Flipper
 		[BiffVertex("VCEN", Pos = 1)]
 		public Vertex2D Center;
 
+		[TextureReference]
 		[BiffString("IMAG", Pos = 31)]
-		public string Image;
+		public string Image = string.Empty;
 
 		[BiffString("SURF", Pos = 12)]
-		public string Surface;
+		public string Surface = string.Empty;
 
+		[MaterialReference]
 		[BiffString("MATR", Pos = 13)]
-		public string Material;
+		public string Material = string.Empty;
 
+		[MaterialReference]
 		[BiffString("RUMA", Pos = 15)]
-		public string RubberMaterial;
+		public string RubberMaterial = string.Empty;
 
 		[BiffFloat("RTHF", Pos = 16.1)]
 		public float RubberThickness = 7.0f;
@@ -76,31 +95,31 @@ namespace VisualPinball.Engine.VPT.Flipper
 		public float RubberWidth = 24.0f;
 
 		[BiffFloat("FORC", Pos = 9)]
-		public float Mass;
+		public float Mass = 1f;
 
 		[BiffFloat("STRG", Pos = 19)]
-		public float Strength;
+		public float Strength = 2200f;
 
 		[BiffFloat("ELAS", Pos = 20)]
-		public float Elasticity;
+		public float Elasticity = 0.8f;
 
 		[BiffFloat("ELFO", Pos = 21)]
-		public float ElasticityFalloff;
+		public float ElasticityFalloff = 0.43f;
 
 		[BiffFloat("FRIC", Pos = 22)]
-		public float Friction;
+		public float Friction = 0.6f;
 
 		[BiffFloat("FRTN", Pos = 5)]
-		public float Return;
+		public float Return = 0.058f;
 
 		[BiffFloat("RPUP", Pos = 23)]
-		public float RampUp;
+		public float RampUp = 3f;
 
 		[BiffFloat("TODA", Pos = 25)]
-		public float TorqueDamping;
+		public float TorqueDamping = 0.75f;
 
 		[BiffFloat("TDAA", Pos = 26)]
-		public float TorqueDampingAngle;
+		public float TorqueDampingAngle = 6f;
 
 		[BiffFloat("SCTR", Pos = 24)]
 		public float Scatter;
@@ -199,6 +218,12 @@ namespace VisualPinball.Engine.VPT.Flipper
 					OverrideTorqueDampingAngle = TorqueDampingAngle;
 				}
 			}
+		}
+
+		public FlipperData(string name, float x, float y) : base(StoragePrefix.GameItem)
+		{
+			Name = name;
+			Center = new Vertex2D(x, y);
 		}
 
 		#region BIFF

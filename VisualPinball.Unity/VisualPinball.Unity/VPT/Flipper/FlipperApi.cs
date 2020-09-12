@@ -1,16 +1,34 @@
-﻿// ReSharper disable EventNeverSubscribedTo.Global
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+// ReSharper disable EventNeverSubscribedTo.Global
 #pragma warning disable 67
 
 using System;
 using Unity.Entities;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT.Flipper;
-using VisualPinball.Unity.Game;
-using VisualPinball.Unity.Physics.Engine;
 
-namespace VisualPinball.Unity.VPT.Flipper
+namespace VisualPinball.Unity
 {
-	public class FlipperApi : ItemApi<Engine.VPT.Flipper.Flipper, FlipperData>, IApiInitializable, IApiHittable,
+	/// <summary>
+	/// The scripting API of the flipper.
+	/// </summary>
+	[Api]
+	public class FlipperApi : ItemApi<Flipper, FlipperData>, IApiInitializable, IApiHittable,
 		IApiRotatable, IApiCollidable
 	{
 		/// <summary>
@@ -43,7 +61,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 		// todo
 		public event EventHandler Timer;
 
-		public FlipperApi(Engine.VPT.Flipper.Flipper flipper, Entity entity, Player player) : base(flipper, entity, player)
+		internal FlipperApi(Flipper flipper, Entity entity, Player player) : base(flipper, entity, player)
 		{
 		}
 
@@ -94,17 +112,6 @@ namespace VisualPinball.Unity.VPT.Flipper
 		#endregion
 	}
 
-	/// <summary>
-	/// Event data when the flipper either reaches resting or end
-	/// position.
-	/// </summary>
-	public struct RotationEventArgs
-	{
-		/// <summary>
-		/// Angle speed with which the new position was reached.
-		/// </summary>
-		public float AngleSpeed;
-	}
 
 	/// <summary>
 	/// Event data when the ball collides with the flipper.

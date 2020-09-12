@@ -1,3 +1,19 @@
+// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using System;
 using System.IO;
 using NLog;
@@ -129,96 +145,96 @@ namespace VisualPinball.Engine.VPT.Table
 				switch (itemType) {
 					case ItemType.Bumper: {
 						var item = new VisualPinball.Engine.VPT.Bumper.Bumper(reader, itemName);
-						table.Bumpers[item.Name] = item;
+						table.Add(item);
 						break;
 					}
 					case ItemType.Decal: {
-						table.Decals.Add(new VisualPinball.Engine.VPT.Decal.Decal(reader, itemName));
+						table.Add(new VisualPinball.Engine.VPT.Decal.Decal(reader, itemName));
 						break;
 					}
 					case ItemType.DispReel: {
 						var item = new VisualPinball.Engine.VPT.DispReel.DispReel(reader, itemName);
-						table.DispReels[item.Name] = item;
+						table.Add(item);
 						break;
 					}
 					case ItemType.Flasher: {
 						var item = new VisualPinball.Engine.VPT.Flasher.Flasher(reader, itemName);
-						table.Flashers[item.Name] = item;
+						table.Add(item);
 						break;
 					}
 					case ItemType.Flipper: {
 						var item = new VisualPinball.Engine.VPT.Flipper.Flipper(reader, itemName);
-						table.Flippers[item.Name] = item;
+						table.Add(item);
 						break;
 					}
 					case ItemType.Gate: {
 						var item = new VisualPinball.Engine.VPT.Gate.Gate(reader, itemName);
-						table.Gates[item.Name] = item;
+						table.Add(item);
 						break;
 					}
 					case ItemType.HitTarget: {
 						var item = new VisualPinball.Engine.VPT.HitTarget.HitTarget(reader, itemName);
-						table.HitTargets[item.Name] = item;
+						table.Add(item);
 						break;
 					}
 					case ItemType.Kicker: {
 						var item = new VisualPinball.Engine.VPT.Kicker.Kicker(reader, itemName);
-						table.Kickers[item.Name] = item;
+						table.Add(item);
 						break;
 					}
 					case ItemType.Light: {
 						var item = new VisualPinball.Engine.VPT.Light.Light(reader, itemName);
-						table.Lights[item.Name] = item;
+						table.Add(item);
 						break;
 					}
 					case ItemType.LightSeq: {
 						var item = new VisualPinball.Engine.VPT.LightSeq.LightSeq(reader, itemName);
-						table.LightSeqs[item.Name] = item;
+						table.Add(item);
 						break;
 					}
 					case ItemType.Plunger: {
 						var item = new VisualPinball.Engine.VPT.Plunger.Plunger(reader, itemName);
-						table.Plungers[item.Name] = item;
+						table.Add(item);
 						break;
 					}
 					case ItemType.Primitive: {
 						var item = new Primitive.Primitive(reader, itemName);
-						table.Primitives[item.Name] = item;
+						table.Add(item);
 						break;
 					}
 					case ItemType.Ramp: {
 						var item = new Ramp.Ramp(reader, itemName);
-						table.Ramps[item.Name] = item;
+						table.Add(item);
 						break;
 					}
 					case ItemType.Rubber: {
 						var item = new Rubber.Rubber(reader, itemName);
-						table.Rubbers[item.Name] = item;
+						table.Add(item);
 						break;
 					}
 					case ItemType.Spinner: {
 						var item = new Spinner.Spinner(reader, itemName);
-						table.Spinners[item.Name] = item;
+						table.Add(item);
 						break;
 					}
 					case ItemType.Surface: {
 						var item = new Surface.Surface(reader, itemName);
-						table.Surfaces[item.Name] = item;
+						table.Add(item);
 						break;
 					}
 					case ItemType.TextBox: {
 						var item = new TextBox.TextBox(reader, itemName);
-						table.TextBoxes[item.Name] = item;
+						table.Add(item);
 						break;
 					}
 					case ItemType.Timer: {
 						var item = new Timer.Timer(reader, itemName);
-						table.Timers[item.Name] = item;
+						table.Add(item);
 						break;
 					}
 					case ItemType.Trigger: {
 						var item = new Trigger.Trigger(reader, itemName);
-						table.Triggers[item.Name] = item;
+						table.Add(item);
 						break;
 					}
 				}
@@ -243,7 +259,7 @@ namespace VisualPinball.Engine.VPT.Table
 				using (var stream = new MemoryStream(textureData))
 				using (var reader = new BinaryReader(stream)) {
 					var texture = new Texture(reader, textureName);
-					table.Textures[texture.Name.ToLower()] = texture;
+					table.Textures.Add(texture);
 				}
 			}
 		}
@@ -278,7 +294,7 @@ namespace VisualPinball.Engine.VPT.Table
 				using (var stream = new MemoryStream(soundData))
 				using (var reader = new BinaryReader(stream)) {
 					var sound = new Sound.Sound(reader, soundName, fileVersion);
-					table.Sounds[sound.Name.ToLower()] = sound;
+					table.Sounds.Add(sound);
 				}
 			}
 		}

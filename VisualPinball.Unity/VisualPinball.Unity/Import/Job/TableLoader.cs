@@ -1,3 +1,19 @@
+// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 // ReSharper disable PossibleNullReferenceException
 
 using System;
@@ -27,7 +43,7 @@ using VisualPinball.Engine.VPT.TextBox;
 using VisualPinball.Engine.VPT.Timer;
 using VisualPinball.Engine.VPT.Trigger;
 
-namespace VisualPinball.Unity.Import.Job
+namespace VisualPinball.Unity
 {
 	public static class TableLoader
 	{
@@ -52,100 +68,83 @@ namespace VisualPinball.Unity.Import.Job
 					var objHandle = (GCHandle) job.ItemObj[i];
 					switch ((ItemType)job.ItemType[i]) {
 						case ItemType.Bumper: {
-							var item = objHandle.Target as Bumper;
-							table.Bumpers[item.Name] = item;
+							table.Add(objHandle.Target as Bumper);
 							break;
 						}
 						case ItemType.Decal: {
-							var item = objHandle.Target as Decal;
-							table.Decals.Add(item);
+							table.Add(objHandle.Target as Decal);
 							break;
 						}
 						case ItemType.DispReel: {
-							var item = objHandle.Target as DispReel;
-							table.DispReels[item.Name] = item;
+							table.Add(objHandle.Target as DispReel);
 							break;
 						}
 						case ItemType.Flasher: {
-							var item = objHandle.Target as Flasher;
-							table.Flashers[item.Name] = item;
+							table.Add(objHandle.Target as Flasher);
 							break;
 						}
 						case ItemType.Flipper: {
-							var item = objHandle.Target as Flipper;
-							table.Flippers[item.Name] = item;
+							table.Add(objHandle.Target as Flipper);
 							break;
 						}
 						case ItemType.Gate: {
-							var item = objHandle.Target as Gate;
-							table.Gates[item.Name] = item;
+							table.Add(objHandle.Target as Gate);
 							break;
 						}
 						case ItemType.HitTarget: {
-							var item = objHandle.Target as HitTarget;
-							table.HitTargets[item.Name] = item;
+							table.Add(objHandle.Target as HitTarget);
 							break;
 						}
 						case ItemType.Kicker: {
-							var item = objHandle.Target as Kicker;
-							table.Kickers[item.Name] = item;
+							table.Add(objHandle.Target as Kicker);
 							break;
 						}
 						case ItemType.Light: {
-							var item = objHandle.Target as Light;
-							table.Lights[item.Name] = item;
+							table.Add(objHandle.Target as Light);
 							break;
 						}
 						case ItemType.LightSeq: {
-							var item = objHandle.Target as LightSeq;
-							table.LightSeqs[item.Name] = item;
+							table.Add(objHandle.Target as LightSeq);
 							break;
 						}
 						case ItemType.Plunger: {
-							var item = objHandle.Target as Plunger;
-							table.Plungers[item.Name] = item;
+							table.Add(objHandle.Target as Plunger);
 							break;
 						}
 						case ItemType.Primitive: {
-							var item = objHandle.Target as Primitive;
-							table.Primitives[item.Name] = item;
+							table.Add(objHandle.Target as Primitive);
 							break;
 						}
 						case ItemType.Ramp: {
-							var item = objHandle.Target as Ramp;
-							table.Ramps[item.Name] = item;
+							table.Add(objHandle.Target as Ramp);
 							break;
 						}
 						case ItemType.Rubber: {
-							var item = objHandle.Target as Rubber;
-							table.Rubbers[item.Name] = item;
+							table.Add(objHandle.Target as Rubber);
 							break;
 						}
 						case ItemType.Spinner: {
-							var item = objHandle.Target as Spinner;
-							table.Spinners[item.Name] = item;
+							table.Add(objHandle.Target as Spinner);
 							break;
 						}
 						case ItemType.Surface: {
-							var item = objHandle.Target as Surface;
-							table.Surfaces[item.Name] = item;
+							table.Add(objHandle.Target as Surface);
 							break;
 						}
 						case ItemType.TextBox: {
-							var item = objHandle.Target as TextBox;
-							table.TextBoxes[item.Name] = item;
+							table.Add(objHandle.Target as TextBox);
 							break;
 						}
 						case ItemType.Timer: {
-							var item = objHandle.Target as Timer;
-							table.Timers[item.Name] = item;
+							table.Add(objHandle.Target as Timer);
 							break;
 						}
 						case ItemType.Trigger: {
-							var item = objHandle.Target as Trigger;
-							table.Triggers[item.Name] = item;
+							table.Add(objHandle.Target as Trigger);
 							break;
 						}
+						default:
+							throw new ArgumentException("Unknown item type " + (ItemType)job.ItemType[i] + ".");
 					}
 				}
 			}

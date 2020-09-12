@@ -1,4 +1,20 @@
-﻿using FluentAssertions;
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using FluentAssertions;
 using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT;
@@ -12,7 +28,7 @@ namespace VisualPinball.Engine.Test.VPT.Light
 		public void ShouldReadLightData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Light);
-			ValidateLightData(table.Lights["Light1"].Data);
+			ValidateLightData(table.Light("Light1").Data);
 		}
 
 		[Test]
@@ -22,7 +38,7 @@ namespace VisualPinball.Engine.Test.VPT.Light
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Light);
 			table.Save(tmpFileName);
 			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
-			ValidateLightData(writtenTable.Lights["Light1"].Data);
+			ValidateLightData(writtenTable.Light("Light1").Data);
 		}
 
 		private static void ValidateLightData(LightData data)
@@ -62,12 +78,12 @@ namespace VisualPinball.Engine.Test.VPT.Light
 		public void ShouldLoadCorrectDragPointData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Light);
-			var dragPoints = table.Lights["PlayfieldLight"].Data.DragPoints;
+			var dragPoints = table.Light("PlayfieldLight").Data.DragPoints;
 
 			dragPoints[0].IsSmooth.Should().Be(false);
 			dragPoints[0].IsSlingshot.Should().Be(true);
-			dragPoints[0].Vertex.X.Should().Be(491.6666f);
-			dragPoints[0].Vertex.Y.Should().Be(376.882f);
+			dragPoints[0].Center.X.Should().Be(491.6666f);
+			dragPoints[0].Center.Y.Should().Be(376.882f);
 			dragPoints[6].IsSmooth.Should().Be(true);
 			dragPoints[7].IsSmooth.Should().Be(false);
 		}

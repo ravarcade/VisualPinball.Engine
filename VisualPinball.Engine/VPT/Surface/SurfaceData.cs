@@ -1,3 +1,19 @@
+// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 #region ReSharper
 // ReSharper disable UnassignedField.Global
 // ReSharper disable StringLiteralTypo
@@ -41,23 +57,29 @@ namespace VisualPinball.Engine.VPT.Surface
 		[BiffFloat("THRS", Pos = 8)]
 		public float Threshold = 2.0f;
 
+		[TextureReference]
 		[BiffString("IMAG", Pos = 9)]
-		public string Image;
+		public string Image = string.Empty;
 
+		[TextureReference]
 		[BiffString("SIMG", Pos = 10)]
-		public string SideImage;
+		public string SideImage = string.Empty;
 
+		[MaterialReference]
 		[BiffString("SIMA", Pos = 11)]
-		public string SideMaterial;
+		public string SideMaterial = string.Empty;
 
+		[MaterialReference]
 		[BiffString("TOMA", Pos = 12)]
-		public string TopMaterial;
+		public string TopMaterial = string.Empty;
 
+		[MaterialReference]
 		[BiffString("MAPH", Pos = 29)]
-		public string PhysicsMaterial;
+		public string PhysicsMaterial = string.Empty;
 
+		[MaterialReference]
 		[BiffString("SLMA", Pos = 13)]
-		public string SlingShotMaterial;
+		public string SlingShotMaterial = string.Empty;
 
 		[BiffFloat("HTBT", Pos = 14)]
 		public float HeightBottom = 0f;
@@ -130,6 +152,12 @@ namespace VisualPinball.Engine.VPT.Surface
 
 		// non-persisted
 		public bool IsDisabled;
+
+		public SurfaceData(string name, DragPointData[] dragPoints) : base(StoragePrefix.GameItem)
+		{
+			Name = name;
+			DragPoints = dragPoints;
+		}
 
 		#region BIFF
 

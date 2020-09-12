@@ -1,9 +1,23 @@
-﻿using UnityEngine;
-using VisualPinball.Engine.Math;
-using VisualPinball.Unity.Extensions;
-using VisualPinball.Unity.VPT;
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-namespace VisualPinball.Unity.Editor.DragPoint
+using UnityEngine;
+using VisualPinball.Engine.Math;
+
+namespace VisualPinball.Unity.Editor
 {
 	/// <summary>
 	/// An editable drag point in Unity's editor. <p/>
@@ -66,7 +80,7 @@ namespace VisualPinball.Unity.Editor.DragPoint
 			var dragpointPos = transform.worldToLocalMatrix.MultiplyPoint(WorldPos);
 			dragpointPos -= editable.GetEditableOffset();
 			dragpointPos -= editable.GetDragPointOffset(IndexRatio);
-			DragPoint.Vertex = dragpointPos.ToVertex3D();
+			DragPoint.Center = dragpointPos.ToVertex3D();
 		}
 	}
 }

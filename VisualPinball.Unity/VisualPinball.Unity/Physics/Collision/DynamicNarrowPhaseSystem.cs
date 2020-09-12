@@ -1,11 +1,26 @@
-﻿using Unity.Entities;
-using Unity.Profiling;
-using VisualPinball.Unity.VPT.Ball;
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-namespace VisualPinball.Unity.Physics.Collision
+using Unity.Entities;
+using Unity.Profiling;
+
+namespace VisualPinball.Unity
 {
 	[DisableAutoCreation]
-	public class DynamicNarrowPhaseSystem : SystemBase
+	internal class DynamicNarrowPhaseSystem : SystemBase
 	{
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("DynamicNarrowPhaseSystem");
 
@@ -23,6 +38,11 @@ namespace VisualPinball.Unity.Physics.Collision
 				.WithReadOnly(overlappingEntitiesBuffer)
 				.ForEach((Entity entity, ref BallData ball, ref CollisionEventData collEvent) => {
 
+					// don't play with frozen balls
+					if (ball.IsFrozen) {
+						return;
+					}
+
 					marker.Begin();
 
 					var contacts = contactsBuffer[entity];
@@ -32,7 +52,7 @@ namespace VisualPinball.Unity.Physics.Collision
 						var collBall = balls[collBallEntity];
 
 						var newCollEvent = new CollisionEventData();
-						var newTime = BallCollider.HitTest(ref newCollEvent, ref collBall, in ball, collEvent.HitTime);
+						var newTime = BallCollider.HitTest(ref newCollEvent, ref ball, in collBall, collEvent.HitTime);
 
 						SaveCollisions(ref collEvent, ref newCollEvent, ref contacts, in collBallEntity, newTime);
 
@@ -48,7 +68,7 @@ namespace VisualPinball.Unity.Physics.Collision
 		private static void SaveCollisions(ref CollisionEventData collEvent, ref CollisionEventData newCollEvent,
 				ref DynamicBuffer<ContactBufferElement> contacts, in Entity ballEntity, float newTime)
 			{
-				var validHit = newTime >= 0 && newTime <= collEvent.HitTime;
+				var validHit = newTime >= 0 && !Math.Sign(newTime) && newTime <= collEvent.HitTime;
 
 				if (newCollEvent.IsContact || validHit) {
 					newCollEvent.SetCollider(ballEntity);

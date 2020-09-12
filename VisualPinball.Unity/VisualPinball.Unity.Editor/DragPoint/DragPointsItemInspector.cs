@@ -1,13 +1,26 @@
-﻿using System.Collections.Generic;
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Math;
-using VisualPinball.Unity.Editor.Inspectors;
-using VisualPinball.Unity.Extensions;
-using VisualPinball.Unity.VPT;
 
-namespace VisualPinball.Unity.Editor.DragPoint
+namespace VisualPinball.Unity.Editor
 {
 	public abstract class DragPointsItemInspector : ItemInspector
 	{
@@ -62,7 +75,7 @@ namespace VisualPinball.Unity.Editor.DragPoint
 		{
 			var dp = GetDragPoint(controlId);
 			if (dp != null) {
-				_storedControlPoint = dp.Vertex.ToUnityVector3();
+				_storedControlPoint = dp.Center.ToUnityVector3();
 			}
 		}
 
@@ -75,7 +88,7 @@ namespace VisualPinball.Unity.Editor.DragPoint
 			var dp = GetDragPoint(controlId);
 			if (dp != null) {
 				PrepareUndo($"Paste drag point {controlId}");
-				dp.Vertex = _storedControlPoint.ToVertex3D();
+				dp.Center = _storedControlPoint.ToVertex3D();
 			}
 		}
 
@@ -85,7 +98,7 @@ namespace VisualPinball.Unity.Editor.DragPoint
 		/// <returns>True if game item is locked, false otherwise.</returns>
 		public bool IsItemLocked()
 		{
-			return !(target is IEditableItemBehavior editable) || editable.IsLocked;
+			return !(target is IEditableItemAuthoring editable) || editable.IsLocked;
 		}
 
 		/// <summary>
@@ -125,7 +138,7 @@ namespace VisualPinball.Unity.Editor.DragPoint
 		public void RemapControlPoints()
 		{
 			var rebuilt = DragPointsHandler.RemapControlPoints();
-			if (rebuilt && target is IEditableItemBehavior editable) {
+			if (rebuilt && target is IEditableItemAuthoring editable) {
 				editable.MeshDirty = true;
 			}
 		}
@@ -161,7 +174,7 @@ namespace VisualPinball.Unity.Editor.DragPoint
 
 			// Set MeshDirty to true there so it'll trigger again after Undo
 			var recordObjs = new List<Object>();
-			if (target is IEditableItemBehavior editable) {
+			if (target is IEditableItemAuthoring editable) {
 				editable.MeshDirty = true;
 				recordObjs.Add(this);
 			}
@@ -173,7 +186,7 @@ namespace VisualPinball.Unity.Editor.DragPoint
 		{
 			base.OnInspectorGUI();
 
-			var editable = target as IEditableItemBehavior;
+			var editable = target as IEditableItemAuthoring;
 			var dragPointEditable = target as IDragPointsEditable;
 			if (editable == null || dragPointEditable == null) {
 				return;
@@ -195,7 +208,7 @@ namespace VisualPinball.Unity.Editor.DragPoint
 						for (var i = 0; i < DragPointsHandler.ControlPoints.Count; ++i) {
 							var controlPoint = DragPointsHandler.ControlPoints[i];
 							EditorGUILayout.BeginHorizontal();
-							EditorGUILayout.LabelField($"#{i} ({controlPoint.DragPoint.Vertex.X},{controlPoint.DragPoint.Vertex.Y},{controlPoint.DragPoint.Vertex.Z})");
+							EditorGUILayout.LabelField($"#{i} ({controlPoint.DragPoint.Center.X},{controlPoint.DragPoint.Center.Y},{controlPoint.DragPoint.Center.Z})");
 							if (GUILayout.Button("Copy")) {
 								CopyDragPoint(controlPoint.ControlId);
 							}
@@ -225,7 +238,7 @@ namespace VisualPinball.Unity.Editor.DragPoint
 
 		private void UpdateDragPointsLock()
 		{
-			if (target is IEditableItemBehavior editable && DragPointsHandler.UpdateDragPointsLock(editable.IsLocked)) {
+			if (target is IEditableItemAuthoring editable && DragPointsHandler.UpdateDragPointsLock(editable.IsLocked)) {
 				HandleUtility.Repaint();
 			}
 		}
@@ -238,14 +251,14 @@ namespace VisualPinball.Unity.Editor.DragPoint
 		private void OnUndoRedoPerformed()
 		{
 			RemapControlPoints();
-			if (target is IEditableItemBehavior item) {
+			if (target is IEditableItemAuthoring item) {
 				item.MeshDirty = true;
 			}
 		}
 
 		protected virtual void OnSceneGUI()
 		{
-			var editable = target as IEditableItemBehavior;
+			var editable = target as IEditableItemAuthoring;
 			var dragPointEditable = target as IDragPointsEditable;
 			var bh = target as Behaviour;
 

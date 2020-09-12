@@ -1,17 +1,29 @@
-﻿using Unity.Collections.LowLevel.Unsafe;
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Physics;
 using VisualPinball.Engine.VPT;
-using VisualPinball.Unity.Common;
-using VisualPinball.Unity.Extensions;
-using VisualPinball.Unity.Physics.Collision;
-using VisualPinball.Unity.VPT.Ball;
 
-namespace VisualPinball.Unity.Physics.Collider
+namespace VisualPinball.Unity
 {
-	public struct CircleCollider : ICollider, ICollidable
+	internal struct CircleCollider
 	{
 		private ColliderHeader _header;
 
@@ -22,10 +34,11 @@ namespace VisualPinball.Unity.Physics.Collider
 		private float _zLow;
 
 		public ColliderType Type => _header.Type;
+		public Entity Entity => _header.Entity;
 
 		public static void Create(BlobBuilder builder, HitCircle src, ref BlobPtr<Collider> dest, ColliderType type = ColliderType.Circle)
 		{
-			ref var ptr = ref UnsafeUtilityEx.As<BlobPtr<Collider>, BlobPtr<CircleCollider>>(ref dest);
+			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<CircleCollider>>(ref dest);
 			ref var collider = ref builder.Allocate(ref ptr);
 			collider.Init(src, type);
 		}
@@ -58,10 +71,10 @@ namespace VisualPinball.Unity.Physics.Collider
 
 		public float HitTestBasicRadius(ref CollisionEventData collEvent, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, in BallData ball, float dTime, bool direction, bool lateral, bool rigid)
 		{
-			// todo
-			// if (!IsEnabled || ball.State.IsFrozen) {
-			// 	return -1.0f;
-			// }
+			// todo IsEnabled
+			if (/*!IsEnabled || */ball.IsFrozen) {
+				return -1.0f;
+			}
 
 			var c = new float3(Center.x, Center.y, 0.0f);
 			var dist = ball.Position - c; // relative ball position
@@ -132,7 +145,7 @@ namespace VisualPinball.Unity.Physics.Collider
 					hitTime = math.max(0.0f, (float) (-bnd / bnv));
 				}
 
-			} else if (isKickerOrTrigger /*&& ball.Hit.IsRealBall()*/ && bnd < 0 == BallData.IsOutsideOf(ref insideOfs, ref _header.Entity)) {
+			} else if (isKickerOrTrigger /*&& ball.Hit.IsRealBall()*/ && bnd < 0 == BallData.IsOutsideOf(ref insideOfs, in _header.Entity)) {
 				// triggers & kickers
 
 				// here if ... ball inside and no hit set .... or ... ball outside and hit set

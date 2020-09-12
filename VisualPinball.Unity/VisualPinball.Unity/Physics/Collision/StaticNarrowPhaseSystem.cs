@@ -1,15 +1,26 @@
-﻿﻿using Unity.Entities;
- using Unity.Profiling;
- using VisualPinball.Unity.Physics.Collider;
-using VisualPinball.Unity.Physics.SystemGroup;
-using VisualPinball.Unity.VPT.Ball;
-using VisualPinball.Unity.VPT.Flipper;
- using VisualPinball.Unity.VPT.Plunger;
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
- namespace VisualPinball.Unity.Physics.Collision
+using Unity.Entities;
+using Unity.Profiling;
+
+namespace VisualPinball.Unity
 {
 	[DisableAutoCreation]
-	public class StaticNarrowPhaseSystem : SystemBase
+	internal class StaticNarrowPhaseSystem : SystemBase
 	{
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
 		private EntityQuery _collDataEntityQuery;
@@ -35,6 +46,11 @@ using VisualPinball.Unity.VPT.Flipper;
 				ref DynamicBuffer<ContactBufferElement> contacts, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs,
 				in DynamicBuffer<OverlappingStaticColliderBufferElement> colliderIds, in BallData ballData) => {
 
+				// don't play with frozen balls
+				if (ballData.IsFrozen) {
+					return;
+				}
+
 				marker.Begin();
 
 				// retrieve static data
@@ -57,7 +73,7 @@ using VisualPinball.Unity.VPT.Flipper;
 					var newCollEvent = new CollisionEventData();
 					float newTime = 0;
 					unsafe {
-						fixed (Collider.Collider* collider = &coll) {
+						fixed (Collider* collider = &coll) {
 							switch (coll.Type) {
 
 								case ColliderType.LineSlingShot:
@@ -99,7 +115,7 @@ using VisualPinball.Unity.VPT.Flipper;
 									break;
 
 								default:
-									newTime = Collider.Collider.HitTest(ref coll, ref newCollEvent, ref insideOfs, in ballData, collEvent.HitTime);
+									newTime = Collider.HitTest(ref coll, ref newCollEvent, ref insideOfs, in ballData, collEvent.HitTime);
 									break;
 							}
 						}
@@ -118,7 +134,7 @@ using VisualPinball.Unity.VPT.Flipper;
 			}).Run();
 		}
 
-		private static void HitTest(ref Collider.Collider coll, ref CollisionEventData collEvent,
+		private static void HitTest(ref Collider coll, ref CollisionEventData collEvent,
 			ref DynamicBuffer<ContactBufferElement> contacts, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs,
 			in BallData ballData) {
 
@@ -128,15 +144,15 @@ using VisualPinball.Unity.VPT.Flipper;
 			// }
 
 			var newCollEvent = new CollisionEventData();
-			var newTime = Collider.Collider.HitTest(ref coll, ref newCollEvent, ref insideOfs, in ballData, collEvent.HitTime);
+			var newTime = Collider.HitTest(ref coll, ref newCollEvent, ref insideOfs, in ballData, collEvent.HitTime);
 
 			SaveCollisions(ref collEvent, ref newCollEvent, ref contacts, in coll, newTime);
 		}
 
 		private static void SaveCollisions(ref CollisionEventData collEvent, ref CollisionEventData newCollEvent,
-			ref DynamicBuffer<ContactBufferElement> contacts, in Collider.Collider coll, float newTime)
+			ref DynamicBuffer<ContactBufferElement> contacts, in Collider coll, float newTime)
 		{
-			var validHit = newTime >= 0 && newTime <= collEvent.HitTime;
+			var validHit = newTime >= 0f && !Math.Sign(newTime) && newTime <= collEvent.HitTime;
 
 			if (newCollEvent.IsContact || validHit) {
 				newCollEvent.SetCollider(coll.Id);

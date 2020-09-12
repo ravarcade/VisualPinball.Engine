@@ -1,22 +1,32 @@
-﻿using System.Collections.Generic;
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using System.Collections.Generic;
 using System.Diagnostics;
 using Unity.Collections;
 using Unity.Entities;
 using VisualPinball.Engine.Common;
-using VisualPinball.Unity.Game;
-using VisualPinball.Unity.Physics.Collision;
-using VisualPinball.Unity.Physics.DebugUI;
-using VisualPinball.Unity.Physics.Engine;
-using VisualPinball.Unity.VPT.Ball;
-using VisualPinball.Unity.VPT.Flipper;
 
-namespace VisualPinball.Unity.Physics.SystemGroup
+namespace VisualPinball.Unity
 {
 	/// <summary>
 	/// The main simulation loop
 	/// </summary>
 	[DisableAutoCreation]
-	public class SimulateCycleSystemGroup : ComponentSystemGroup
+	internal class SimulateCycleSystemGroup : ComponentSystemGroup
 	{
 		/// <summary>
 		/// Time of the next collision; other systems can update this.

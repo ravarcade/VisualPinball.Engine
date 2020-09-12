@@ -1,41 +1,50 @@
-﻿using System;
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using System;
 using System.Collections.Generic;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.VPT.Bumper;
 using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Gate;
 using VisualPinball.Engine.VPT.HitTarget;
 using VisualPinball.Engine.VPT.Kicker;
 using VisualPinball.Engine.VPT.Plunger;
+using VisualPinball.Engine.VPT.Primitive;
+using VisualPinball.Engine.VPT.Ramp;
 using VisualPinball.Engine.VPT.Rubber;
 using VisualPinball.Engine.VPT.Spinner;
 using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.Trigger;
-using VisualPinball.Unity.Physics.DebugUI;
-using VisualPinball.Unity.Physics.Event;
-using VisualPinball.Unity.VPT;
-using VisualPinball.Unity.VPT.Ball;
-using VisualPinball.Unity.VPT.Flipper;
-using VisualPinball.Unity.VPT.Gate;
-using VisualPinball.Unity.VPT.HitTarget;
-using VisualPinball.Unity.VPT.Kicker;
-using VisualPinball.Unity.VPT.Plunger;
-using VisualPinball.Unity.VPT.Rubber;
-using VisualPinball.Unity.VPT.Spinner;
-using VisualPinball.Unity.VPT.Surface;
-using VisualPinball.Unity.VPT.Table;
-using VisualPinball.Unity.VPT.Trigger;
 
-namespace VisualPinball.Unity.Game
+namespace VisualPinball.Unity
 {
 	public class Player : MonoBehaviour
 	{
+		public Table Table { get; private set; }
+
+		// shortcuts
+		public Matrix4x4 TableToWorld => transform.localToWorldMatrix;
+
 		// table related
-		private Table _table;
 		private BallManager _ballManager;
 		private readonly TableApi _tableApi = new TableApi();
 		private readonly List<IApiInitializable> _initializables = new List<IApiInitializable>();
@@ -45,15 +54,78 @@ namespace VisualPinball.Unity.Game
 		private readonly Dictionary<Entity, IApiSpinnable> _spinnables = new Dictionary<Entity, IApiSpinnable>();
 		private readonly Dictionary<Entity, IApiSlingshot> _slingshots = new Dictionary<Entity, IApiSlingshot>();
 
-		// shortcuts
-		public Matrix4x4 TableToWorld => transform.localToWorldMatrix;
-
 		public Player()
 		{
 			_initializables.Add(_tableApi);
 		}
 
+		#region Lifecycle
+
+		private void Awake()
+		{
+			var tableComponent = gameObject.GetComponent<TableAuthoring>();
+			Table = tableComponent.CreateTable();
+			_ballManager = new BallManager(Table, TableToWorld);
+		}
+
+		private void Start()
+		{
+			// bootstrap table script(s)
+			var tableScripts = GetComponents<VisualPinballScript>();
+			foreach (var tableScript in tableScripts) {
+				tableScript.OnAwake(_tableApi);
+			}
+
+			// trigger init events now
+			foreach (var i in _initializables) {
+				i.OnInit();
+			}
+		}
+
+		private void Update()
+		{
+			// flippers will be handled via script later, but until scripting works, do it here.
+			if (Input.GetKeyDown("left shift")) {
+				_tableApi.Flipper("LeftFlipper")?.RotateToEnd();
+			}
+			if (Input.GetKeyUp("left shift")) {
+				_tableApi.Flipper("LeftFlipper")?.RotateToStart();
+			}
+			if (Input.GetKeyDown("right shift")) {
+				_tableApi.Flipper("RightFlipper")?.RotateToEnd();
+			}
+			if (Input.GetKeyUp("right shift")) {
+				_tableApi.Flipper("RightFlipper")?.RotateToStart();
+			}
+
+			if (Input.GetKeyUp("b")) {
+				_ballManager.CreateBall(new DebugBallCreator());
+			}
+
+			if (Input.GetKeyUp("n")) {
+				_ballManager.CreateBall(new DebugBallCreator(Table.Width / 2f, Table.Height / 2f - 300f, 0, -5));
+				//_tableApi.Flippers["LeftFlipper"].RotateToEnd();
+			}
+
+			if (Input.GetKeyDown(KeyCode.Return)) {
+				_tableApi.Plunger("Plunger")?.PullBack();
+			}
+			if (Input.GetKeyUp(KeyCode.Return)) {
+				_tableApi.Plunger("Plunger")?.Fire();
+			}
+		}
+
+		#endregion
+
 		#region Registrations
+
+		public void RegisterBumper(Bumper bumper, Entity entity, GameObject go)
+		{
+			var bumperApi = new BumperApi(bumper, entity, this);
+			_tableApi.Bumpers[bumper.Name] = bumperApi;
+			_initializables.Add(bumperApi);
+			_hittables[entity] = bumperApi;
+		}
 
 		public void RegisterFlipper(Flipper flipper, Entity entity, GameObject go)
 		{
@@ -90,6 +162,8 @@ namespace VisualPinball.Unity.Game
 		{
 			var kickerApi = new KickerApi(kicker, entity, this);
 			_tableApi.Kickers[kicker.Name] = kickerApi;
+			_initializables.Add(kickerApi);
+			_hittables[entity] = kickerApi;
 		}
 
 		public void RegisterPlunger(Plunger plunger, Entity entity, GameObject go)
@@ -98,6 +172,13 @@ namespace VisualPinball.Unity.Game
 			_tableApi.Plungers[plunger.Name] = plungerApi;
 			_initializables.Add(plungerApi);
 			_rotatables[entity] = plungerApi;
+		}
+
+		public void RegisterRamp(Ramp ramp, Entity entity, GameObject go)
+		{
+			var rampApi = new RampApi(ramp, entity, this);
+			_tableApi.Ramps[ramp.Name] = rampApi;
+			_initializables.Add(rampApi);
 		}
 
 		public void RegisterRubber(Rubber rubber, Entity entity, GameObject go)
@@ -134,7 +215,17 @@ namespace VisualPinball.Unity.Game
 			_hittables[entity] = triggerApi;
 		}
 
+		public void RegisterPrimitive(Primitive primitive, Entity entity, GameObject go)
+		{
+			var primitiveApi = new PrimitiveApi(primitive, entity, this);
+			_tableApi.Primitives[primitive.Name] = primitiveApi;
+			_initializables.Add(primitiveApi);
+			_hittables[entity] = primitiveApi;
+		}
+
 		#endregion
+
+		#region Events
 
 		public void OnEvent(in EventData eventData)
 		{
@@ -175,80 +266,13 @@ namespace VisualPinball.Unity.Game
 			}
 		}
 
-		public BallApi CreateBall(IBallCreationPosition ballCreator, float radius = 25, float mass = 1)
-		{
-			// todo callback and other stuff
-			return _ballManager.CreateBall(this, ballCreator, radius, mass);
-		}
+		#endregion
 
 		public float3 GetGravity()
 		{
-			var slope = _table.Data.AngleTiltMin + (_table.Data.AngleTiltMax - _table.Data.AngleTiltMin) * _table.Data.GlobalDifficulty;
-			var strength = _table.Data.OverridePhysics != 0 ? PhysicsConstants.DefaultTableGravity : _table.Data.Gravity;
+			var slope = Table.Data.AngleTiltMin + (Table.Data.AngleTiltMax - Table.Data.AngleTiltMin) * Table.Data.GlobalDifficulty;
+			var strength = Table.Data.OverridePhysics != 0 ? PhysicsConstants.DefaultTableGravity : Table.Data.Gravity;
 			return new float3(0,  math.sin(math.radians(slope)) * strength, -math.cos(math.radians(slope)) * strength);
-		}
-
-		private void Awake()
-		{
-			var tableComponent = gameObject.GetComponent<TableBehavior>();
-			_table = tableComponent.CreateTable();
-			_ballManager = new BallManager(_table);
-		}
-
-		private void Start()
-		{
-			// bootstrap table script(s)
-			var tableScripts = GetComponents<VisualPinballScript>();
-			foreach (var tableScript in tableScripts) {
-				tableScript.OnAwake(_tableApi);
-			}
-
-			// trigger init events now
-			foreach (var i in _initializables) {
-				i.OnInit();
-			}
-		}
-
-		private void Update()
-		{
-			// flippers will be handled via script later, but until scripting works, do it here.
-			if (Input.GetKeyDown("left shift")) {
-				_tableApi.Flipper("LeftFlipper")?.RotateToEnd();
-			}
-			if (Input.GetKeyUp("left shift")) {
-				_tableApi.Flipper("LeftFlipper")?.RotateToStart();
-			}
-			if (Input.GetKeyDown("right shift")) {
-				_tableApi.Flipper("RightFlipper")?.RotateToEnd();
-			}
-			if (Input.GetKeyUp("right shift")) {
-				_tableApi.Flipper("RightFlipper")?.RotateToStart();
-			}
-
-			if (Input.GetKeyUp("b")) {
-				CreateBall(new DebugBallCreator());
-				// _player.CreateBall(new DebugBallCreator(425, 1325));
-				// _player.CreateBall(new DebugBallCreator(390, 1125));
-
-				// _player.CreateBall(new DebugBallCreator(475, 1727.5f));
-				// _tableApi.Flippers["RightFlipper"].RotateToEnd();
-			}
-
-			if (Input.GetKeyUp("n")) {
-				CreateBall(new DebugBallCreator(430f, 1350f, 0, 10));
-				//_tableApi.Flippers["LeftFlipper"].RotateToEnd();
-			}
-
-			if (Input.GetKeyDown(KeyCode.Return)) {
-				_tableApi.Plunger("CustomPlunger")?.PullBack();
-				_tableApi.Plunger("Plunger001")?.PullBack();
-				_tableApi.Plunger("Plunger002")?.PullBack();
-			}
-			if (Input.GetKeyUp(KeyCode.Return)) {
-				_tableApi.Plunger("CustomPlunger")?.Fire();
-				_tableApi.Plunger("Plunger001")?.Fire();
-				_tableApi.Plunger("Plunger002")?.Fire();
-			}
 		}
 	}
 }

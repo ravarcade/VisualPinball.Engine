@@ -126,8 +126,8 @@ Let's look at how to apply this in the next section.
 ## Patcher
 
 Now we know how to match an item, let's create a patch. It's as easy as
-writing a `void` method in your patch class that takes in Unity's `GameObject`
-and decorate it with an item matcher.
+writing a `void` method in your patch class that takes in the objects you're
+interested in (see below), and decorate it with an item matcher.
 
 Let's take the name matcher from the example above and use it to hide the
 flipper shadows:
@@ -143,7 +143,65 @@ public void RemoveFlipperShadow(GameObject gameObject)
 
 Putting several attributes on a method means that it is matched if *at least 
 one* of the matchers matches (the same applies to the table matchers, by the 
-way). 
+way).
+
+You can pass different types in any order to the method. Supported types are:
+
+- `UnityEngine.GameObject` - Unity game object that was created for that game item.
+- `VisualPinball.Engine.VPT.Table.Table` - The table object for which the game 
+  item was created for
+- Any game item type, e.g. `VisualPinball.Engine.VPT.Flipper.Flipper` that 
+  extends `IItem`. If your matched game item is not of the type you've provided
+  in the method signature, the patch is skipped and a warning is printed.
+- `VisualPinball.Engine.Game.IRenderable` if you don't care about the item type
+  but still want to access something from the item.
+- `ref UnityEngine.GameObject` - Another game object, specified by the `Ref` 
+  field of the matcher (see *Advanced Features* below).  
+  
+## Built-in Matchers
+
+### Table Matchers
+
+- `[AnyMatch]` - Matches all tables
+- `[MetaMatch(string TableName, string AuthorName)]` - Matches a table  where 
+  `TableName` is the table name and `AuthorName` the (exact) string of the
+  authors field of the table's metadata.
+ - `[TableNameMatch(string name)]` - Matches a table by the table's game item
+  item name (also the table name in the table script).
+- `[RenderPipeline(RenderPipelineType rp)]` - Matches if the current render
+  pipeline is set to the given value.  
+
+### Item Matchers
+
+- `[NameMatch(string name)]` - Matches an item by its name.
+- `[RenderPipeline(RenderPipelineType rp)]` - Matches if the current render
+  pipeline is set to the given value. 
+  
+## Advanced Features
+
+You might need to find another game object during patching, and repeat this 
+over several patch methods. For that, you can use the matcher's `Ref` field,
+which is a search path for the game object you'd like to find. In the patch
+method, you can retrieve this using a `ref GameObject` parameter.
+
+For example, many tables use a primitive for the flipper, that we'd like to 
+re-parent to the actual flipper object. So we would do the following:
+
+```cs
+[NameMatch("RightFlipperPrimitive", Ref="Flippers/RightFlipper")]
+[NameMatch("LeftFlipperPrimitive", Ref="Flippers/LeftFlipper")]
+public void ReparentFlippers(GameObject gameObject, ref GameObject parent)
+{
+	var rot = gameObject.transform.rotation;
+	var pos = gameObject.transform.position;
+
+	// re-parent the child
+	gameObject.transform.SetParent(parent.transform, false);
+
+	gameObject.transform.rotation = rot;
+	gameObject.transform.position = pos;
+}  
+```
 
 ## Summary
 

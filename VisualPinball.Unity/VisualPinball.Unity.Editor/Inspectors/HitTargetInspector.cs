@@ -1,13 +1,28 @@
-﻿using UnityEditor;
-using VisualPinball.Engine.VPT;
-using VisualPinball.Unity.VPT.HitTarget;
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-namespace VisualPinball.Unity.Editor.Inspectors
+using UnityEditor;
+using VisualPinball.Engine.VPT;
+
+namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(HitTargetBehavior))]
+	[CustomEditor(typeof(HitTargetAuthoring))]
 	public class HitTargetInspector : ItemInspector
 	{
-		private HitTargetBehavior _target;
+		private HitTargetAuthoring _target;
 		private bool _foldoutColorsAndFormatting = true;
 		private bool _foldoutPosition = true;
 		private bool _foldoutPhysics = true;
@@ -39,12 +54,12 @@ namespace VisualPinball.Unity.Editor.Inspectors
 		protected override void OnEnable()
 		{
 			base.OnEnable();
-			_target = target as HitTargetBehavior;
+			_target = target as HitTargetAuthoring;
 		}
 
 		public override void OnInspectorGUI()
 		{
-			base.OnPreInspectorGUI();
+			OnPreInspectorGUI();
 
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
 				DropDownField("Type", ref _target.data.TargetType, _targetTypeStrings, _targetTypeValues);

@@ -1,20 +1,32 @@
-﻿// ReSharper disable ClassNeverInstantiated.Global
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+// ReSharper disable ClassNeverInstantiated.Global
 
 using NLog;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Profiling;
 using UnityEngine;
-using VisualPinball.Unity.Game;
-using VisualPinball.Unity.Physics.SystemGroup;
-using VisualPinball.Unity.VPT.Ball;
-using VisualPinball.Unity.VPT.Flipper;
 using Logger = NLog.Logger;
 
-namespace VisualPinball.Unity.Physics.Collision
+namespace VisualPinball.Unity
 {
 	[DisableAutoCreation]
-	public class ContactSystem : SystemBase
+	internal class ContactSystem : SystemBase
 	{
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
 		private float3 _gravity;
@@ -58,7 +70,7 @@ namespace VisualPinball.Unity.Physics.Collision
 					if (contact.ColliderId > -1) {
 						ref var coll = ref colliders[contact.ColliderId].Value;
 						unsafe {
-							fixed (Collider.Collider* collider = &coll) {
+							fixed (Collider* collider = &coll) {
 								switch (coll.Type) {
 
 									case ColliderType.Flipper:
@@ -72,7 +84,7 @@ namespace VisualPinball.Unity.Physics.Collision
 										break;
 
 									default:
-										Collider.Collider.Contact(ref coll, ref ball, in contact.CollisionEvent, hitTime, in gravity);
+										Collider.Contact(ref coll, ref ball, in contact.CollisionEvent, hitTime, in gravity);
 										break;
 								}
 							}

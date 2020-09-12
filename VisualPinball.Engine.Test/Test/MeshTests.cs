@@ -1,4 +1,20 @@
-﻿using System;
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using System;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -63,7 +79,7 @@ namespace VisualPinball.Engine.Test.Test
 			}
 		}
 
-		protected static void AssertObjMesh(ObjFile objFile, Mesh mesh, string name = null, float threshold = Threshold)
+		protected static void AssertObjMesh(ObjFile objFile, Mesh mesh, string name = null, float threshold = Threshold, bool switchZ = false)
 		{
 			name = name ?? mesh.Name;
 			var objGroup = objFile.Groups.FirstOrDefault(g => g.Name == name);
@@ -72,9 +88,9 @@ namespace VisualPinball.Engine.Test.Test
 			}
 			var i = 0;
 			foreach (var face in objGroup.Faces) {
-				AssertVerticesEqual(objFile.Vertices[face.Vertices[2].Vertex - 1].Position, mesh.Vertices[mesh.Indices[i]], threshold);
-				AssertVerticesEqual(objFile.Vertices[face.Vertices[1].Vertex - 1].Position, mesh.Vertices[mesh.Indices[i + 1]], threshold);
-				AssertVerticesEqual(objFile.Vertices[face.Vertices[0].Vertex - 1].Position, mesh.Vertices[mesh.Indices[i + 2]], threshold);
+				AssertVerticesEqual(objFile.Vertices[face.Vertices[2].Vertex - 1].Position, mesh.Vertices[mesh.Indices[i]], threshold, switchZ);
+				AssertVerticesEqual(objFile.Vertices[face.Vertices[1].Vertex - 1].Position, mesh.Vertices[mesh.Indices[i + 1]], threshold, switchZ);
+				AssertVerticesEqual(objFile.Vertices[face.Vertices[0].Vertex - 1].Position, mesh.Vertices[mesh.Indices[i + 2]], threshold, switchZ);
 
 				i += 3;
 			}
@@ -88,11 +104,12 @@ namespace VisualPinball.Engine.Test.Test
 			}
 		}
 
-		private static void AssertVerticesEqual(ObjVector4 expected, Vertex3DNoTex2 actual, float threshold)
+		private static void AssertVerticesEqual(ObjVector4 expected, Vertex3DNoTex2 actual, float threshold, bool switchZ = false)
 		{
+			var sign = switchZ ? -1 : 1;
 			actual.X.Should().BeApproximately(expected.X, threshold);
 			actual.Y.Should().BeApproximately(expected.Y, threshold);
-			actual.Z.Should().BeApproximately(expected.Z, threshold);
+			actual.Z.Should().BeApproximately(sign * expected.Z, threshold);
 		}
 	}
 }

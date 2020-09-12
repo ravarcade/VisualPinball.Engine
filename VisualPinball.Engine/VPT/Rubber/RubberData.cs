@@ -1,3 +1,19 @@
+// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 #region ReSharper
 // ReSharper disable UnassignedField.Global
 // ReSharper disable StringLiteralTypo
@@ -27,7 +43,7 @@ namespace VisualPinball.Engine.VPT.Rubber
 		public float Height = 25f;
 
 		[BiffFloat("HTHI", Pos = 2)]
-		public float HitHeight = -1.0f;
+		public float HitHeight = 25f;
 
 		[BiffInt("WDTP", Pos = 3)]
 		public int Thickness = 8;
@@ -35,11 +51,13 @@ namespace VisualPinball.Engine.VPT.Rubber
 		[BiffBool("HTEV", Pos = 4)]
 		public bool HitEvent = false;
 
+		[MaterialReference]
 		[BiffString("MATR", Pos = 5)]
-		public string Material;
+		public string Material = string.Empty;
 
+		[TextureReference]
 		[BiffString("IMAG", Pos = 9)]
-		public string Image;
+		public string Image = string.Empty;
 
 		[BiffFloat("ELAS", Pos = 10)]
 		public float Elasticity;
@@ -77,8 +95,9 @@ namespace VisualPinball.Engine.VPT.Rubber
 		[BiffFloat("ROTZ", Pos = 20)]
 		public float RotZ = 0f;
 
+		[MaterialReference]
 		[BiffString("MAPH", Pos = 22)]
-		public string PhysicsMaterial;
+		public string PhysicsMaterial = string.Empty;
 
 		[BiffBool("OVPH", Pos = 23)]
 		public bool OverwritePhysics = false;
@@ -103,6 +122,11 @@ namespace VisualPinball.Engine.VPT.Rubber
 		public bool GetOverwritePhysics() => OverwritePhysics;
 		public bool GetIsCollidable() => IsCollidable;
 		public string GetPhysicsMaterial() => PhysicsMaterial;
+
+		public RubberData(string name) : base(StoragePrefix.GameItem)
+		{
+			Name = name;
+		}
 
 		#region BIFF
 

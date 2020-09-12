@@ -1,9 +1,28 @@
+// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using NLog;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Physics;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Engine.VPT.Table
 {
@@ -13,7 +32,7 @@ namespace VisualPinball.Engine.VPT.Table
 	/// A table contains all the playfield elements, as well as a set of
 	/// global data.
 	/// </summary>
-	public class Table : Item<TableData>, IRenderable
+	public class Table : Item<TableData>, IRenderable, IHittable
 	{
 		public CustomInfoTags CustomInfoTags { get; set; }
 		public int FileVersion { get; set; }
@@ -21,105 +40,377 @@ namespace VisualPinball.Engine.VPT.Table
 
 		public float Width => Data.Right - Data.Left;
 		public float Height => Data.Bottom - Data.Top;
+
 		public float TableHeight => Data.TableHeight;
+
+		public float GlassHeight => Data.GlassHeight;
+		public Rect3D BoundingBox => new Rect3D(Data.Left, Data.Right, Data.Top, Data.Bottom, TableHeight, GlassHeight);
 
 		public bool HasMeshAsPlayfield => _meshGenerator.HasMeshAsPlayfield;
 
-		public string[] UsedMaterials => new string[] { Data.PlayfieldMaterial };
-
 		public readonly Dictionary<string, string> TableInfo = new Dictionary<string, string>();
-		public readonly Dictionary<string, Texture> Textures = new Dictionary<string, Texture>();
-		public readonly Dictionary<string, Sound.Sound> Sounds = new Dictionary<string, Sound.Sound>();
+		public ITableResourceContainer<Texture> Textures = new DefaultTableResourceContainer<Texture>();
+		public ITableResourceContainer<Sound.Sound> Sounds = new DefaultTableResourceContainer<Sound.Sound>();
 		public readonly Dictionary<string, Collection.Collection> Collections = new Dictionary<string, Collection.Collection>();
 
 		#region GameItems
 
-		public readonly Dictionary<string, Bumper.Bumper> Bumpers = new Dictionary<string, Bumper.Bumper>();
-		public readonly List<Decal.Decal> Decals = new List<Decal.Decal>();
-		public readonly Dictionary<string, DispReel.DispReel> DispReels = new Dictionary<string, DispReel.DispReel>();
-		public readonly Dictionary<string, Flipper.Flipper> Flippers = new Dictionary<string, Flipper.Flipper>();
-		public readonly Dictionary<string, Gate.Gate> Gates = new Dictionary<string, Gate.Gate>();
-		public readonly Dictionary<string, HitTarget.HitTarget> HitTargets = new Dictionary<string, HitTarget.HitTarget>();
-		public readonly Dictionary<string, Kicker.Kicker> Kickers = new Dictionary<string, Kicker.Kicker>();
-		public readonly Dictionary<string, Light.Light> Lights = new Dictionary<string, Light.Light>();
-		public readonly Dictionary<string, LightSeq.LightSeq> LightSeqs = new Dictionary<string, LightSeq.LightSeq>();
-		public readonly Dictionary<string, Plunger.Plunger> Plungers = new Dictionary<string, Plunger.Plunger>();
-		public readonly Dictionary<string, Flasher.Flasher> Flashers = new Dictionary<string, Flasher.Flasher>();
-		public readonly Dictionary<string, Primitive.Primitive> Primitives = new Dictionary<string, Primitive.Primitive>();
-		public readonly Dictionary<string, Ramp.Ramp> Ramps = new Dictionary<string, Ramp.Ramp>();
-		public readonly Dictionary<string, Rubber.Rubber> Rubbers = new Dictionary<string, Rubber.Rubber>();
-		public readonly Dictionary<string, Spinner.Spinner> Spinners = new Dictionary<string, Spinner.Spinner>();
-		public readonly Dictionary<string, Surface.Surface> Surfaces = new Dictionary<string, Surface.Surface>();
-		public readonly Dictionary<string, TextBox.TextBox> TextBoxes = new Dictionary<string, TextBox.TextBox>();
-		public readonly Dictionary<string, Timer.Timer> Timers = new Dictionary<string, Timer.Timer>();
-		public readonly Dictionary<string, Trigger.Trigger> Triggers = new Dictionary<string, Trigger.Trigger>();
+		private readonly Dictionary<string, Bumper.Bumper> _bumpers = new Dictionary<string, Bumper.Bumper>();
+		private readonly List<Decal.Decal> _decals = new List<Decal.Decal>();
+		private readonly Dictionary<string, DispReel.DispReel> _dispReels = new Dictionary<string, DispReel.DispReel>();
+		private readonly Dictionary<string, Flipper.Flipper> _flippers = new Dictionary<string, Flipper.Flipper>();
+		private readonly Dictionary<string, Gate.Gate> _gates = new Dictionary<string, Gate.Gate>();
+		private readonly Dictionary<string, HitTarget.HitTarget> _hitTargets = new Dictionary<string, HitTarget.HitTarget>();
+		private readonly Dictionary<string, Kicker.Kicker> _kickers = new Dictionary<string, Kicker.Kicker>();
+		private readonly Dictionary<string, Light.Light> _lights = new Dictionary<string, Light.Light>();
+		private readonly Dictionary<string, LightSeq.LightSeq> _lightSeqs = new Dictionary<string, LightSeq.LightSeq>();
+		private readonly Dictionary<string, Plunger.Plunger> _plungers = new Dictionary<string, Plunger.Plunger>();
+		private readonly Dictionary<string, Flasher.Flasher> _flashers = new Dictionary<string, Flasher.Flasher>();
+		private readonly Dictionary<string, Primitive.Primitive> _primitives = new Dictionary<string, Primitive.Primitive>();
+		private readonly Dictionary<string, Ramp.Ramp> _ramps = new Dictionary<string, Ramp.Ramp>();
+		private readonly Dictionary<string, Rubber.Rubber> _rubbers = new Dictionary<string, Rubber.Rubber>();
+		private readonly Dictionary<string, Spinner.Spinner> _spinners = new Dictionary<string, Spinner.Spinner>();
+		private readonly Dictionary<string, Surface.Surface> _surfaces = new Dictionary<string, Surface.Surface>();
+		private readonly Dictionary<string, TextBox.TextBox> _textBoxes = new Dictionary<string, TextBox.TextBox>();
+		private readonly Dictionary<string, Timer.Timer> _timers = new Dictionary<string, Timer.Timer>();
+		private readonly Dictionary<string, Trigger.Trigger> _triggers = new Dictionary<string, Trigger.Trigger>();
+
+		public Bumper.Bumper Bumper(string name) => _bumpers[name];
+		public Decal.Decal Decal(int i) => _decals[i];
+		public DispReel.DispReel DispReel(string name) => _dispReels[name];
+		public Flipper.Flipper Flipper(string name) => _flippers[name];
+		public Gate.Gate Gate(string name) => _gates[name];
+		public HitTarget.HitTarget HitTarget(string name) => _hitTargets[name];
+		public Kicker.Kicker Kicker(string name) => _kickers[name];
+		public Light.Light Light(string name) => _lights[name];
+		public LightSeq.LightSeq LightSeq(string name) => _lightSeqs[name];
+		public Plunger.Plunger Plunger(string name) => _plungers[name];
+		public Flasher.Flasher Flasher(string name) => _flashers[name];
+		public Primitive.Primitive Primitive(string name) => _primitives[name];
+		public Ramp.Ramp Ramp(string name) => _ramps[name];
+		public Rubber.Rubber Rubber(string name) => _rubbers[name];
+		public Spinner.Spinner Spinner(string name) => _spinners[name];
+		public Surface.Surface Surface(string name) => _surfaces[name];
+		public TextBox.TextBox TextBox(string name) => _textBoxes[name];
+		public Timer.Timer Timer(string name) => _timers[name];
+		public Trigger.Trigger Trigger(string name) => _triggers[name];
 
 		public IEnumerable<IRenderable> Renderables => new IRenderable[] { this }
-			.Concat(Bumpers.Values)
-			.Concat(Flippers.Values)
-			.Concat(Gates.Values)
-			.Concat(HitTargets.Values)
-			.Concat(Kickers.Values)
-			.Concat(Lights.Values)
-			.Concat(Plungers.Values)
-			.Concat(Primitives.Values)
-			.Concat(Ramps.Values)
-			.Concat(Rubbers.Values)
-			.Concat(Spinners.Values)
-			.Concat(Surfaces.Values)
-			.Concat(Triggers.Values);
+			.Concat(_bumpers.Values)
+			.Concat(_flippers.Values)
+			.Concat(_gates.Values)
+			.Concat(_hitTargets.Values)
+			.Concat(_kickers.Values)
+			.Concat(_lights.Values)
+			.Concat(_plungers.Values)
+			.Concat(_primitives.Values)
+			.Concat(_ramps.Values)
+			.Concat(_rubbers.Values)
+			.Concat(_spinners.Values)
+			.Concat(_surfaces.Values)
+			.Concat(_triggers.Values);
+
+		public IEnumerable<IItem> GameItemInterfaces => new IItem[] { }
+			.Concat(_bumpers.Values)
+			.Concat(_decals.Select(i => i))
+			.Concat(_dispReels.Values)
+			.Concat(_flippers.Values)
+			.Concat(_flashers.Values)
+			.Concat(_gates.Values)
+			.Concat(_hitTargets.Values)
+			.Concat(_kickers.Values)
+			.Concat(_lights.Values)
+			.Concat(_lightSeqs.Values)
+			.Concat(_plungers.Values)
+			.Concat(_primitives.Values)
+			.Concat(_ramps.Values)
+			.Concat(_rubbers.Values)
+			.Concat(_spinners.Values)
+			.Concat(_surfaces.Values)
+			.Concat(_textBoxes.Values)
+			.Concat(_timers.Values)
+			.Concat(_triggers.Values);
 
 		public IEnumerable<ItemData> GameItems => new ItemData[] {}
-			.Concat(Bumpers.Values.Select(i => i.Data))
-			.Concat(Decals.Select(i => i.Data))
-			.Concat(DispReels.Values.Select(i => i.Data))
-			.Concat(Flippers.Values.Select(i => i.Data))
-			.Concat(Flashers.Values.Select(i => i.Data))
-			.Concat(Gates.Values.Select(i => i.Data))
-			.Concat(HitTargets.Values.Select(i => i.Data))
-			.Concat(Kickers.Values.Select(i => i.Data))
-			.Concat(Lights.Values.Select(i => i.Data))
-			.Concat(LightSeqs.Values.Select(i => i.Data))
-			.Concat(Plungers.Values.Select(i => i.Data))
-			.Concat(Primitives.Values.Select(i => i.Data))
-			.Concat(Ramps.Values.Select(i => i.Data))
-			.Concat(Rubbers.Values.Select(i => i.Data))
-			.Concat(Spinners.Values.Select(i => i.Data))
-			.Concat(Surfaces.Values.Select(i => i.Data))
-			.Concat(TextBoxes.Values.Select(i => i.Data))
-			.Concat(Timers.Values.Select(i => i.Data))
-			.Concat(Triggers.Values.Select(i => i.Data));
+			.Concat(_bumpers.Values.Select(i => i.Data))
+			.Concat(_decals.Select(i => i.Data))
+			.Concat(_dispReels.Values.Select(i => i.Data))
+			.Concat(_flippers.Values.Select(i => i.Data))
+			.Concat(_flashers.Values.Select(i => i.Data))
+			.Concat(_gates.Values.Select(i => i.Data))
+			.Concat(_hitTargets.Values.Select(i => i.Data))
+			.Concat(_kickers.Values.Select(i => i.Data))
+			.Concat(_lights.Values.Select(i => i.Data))
+			.Concat(_lightSeqs.Values.Select(i => i.Data))
+			.Concat(_plungers.Values.Select(i => i.Data))
+			.Concat(_primitives.Values.Select(i => i.Data))
+			.Concat(_ramps.Values.Select(i => i.Data))
+			.Concat(_rubbers.Values.Select(i => i.Data))
+			.Concat(_spinners.Values.Select(i => i.Data))
+			.Concat(_surfaces.Values.Select(i => i.Data))
+			.Concat(_textBoxes.Values.Select(i => i.Data))
+			.Concat(_timers.Values.Select(i => i.Data))
+			.Concat(_triggers.Values.Select(i => i.Data));
 
-		public IEnumerable<IMovable> Movables => new IMovable[0]
-			.Concat(Flippers.Values)
-			.Concat(Gates.Values)
-			.Concat(Spinners.Values);
-
-		public IEnumerable<IHittable> Hittables => new IHittable[0]
-			.Concat(Bumpers.Values)
-			.Concat(Flippers.Values)
-			.Concat(Gates.Values)
-			.Concat(HitTargets.Values)
-			.Concat(Plungers.Values)
-			.Concat(Ramps.Values)
-			.Concat(Rubbers.Values)
-			.Concat(Spinners.Values)
-			.Concat(Surfaces.Values)
-			.Concat(Triggers.Values);
+		public IEnumerable<IHittable> Hittables => new IHittable[] { this }
+			.Concat(_bumpers.Values)
+			.Concat(_flippers.Values)
+			.Concat(_gates.Values)
+			.Concat(_hitTargets.Values)
+			.Concat(_kickers.Values)
+			.Concat(_plungers.Values)
+			.Concat(_primitives.Values)
+			.Concat(_ramps.Values)
+			.Concat(_rubbers.Values)
+			.Concat(_spinners.Values)
+			.Concat(_surfaces.Values)
+			.Concat(_triggers.Values);
 
 		public IEnumerable<IPlayable> Playables => new IPlayable[0]
-			.Concat(Bumpers.Values)
-			.Concat(Flippers.Values)
-			.Concat(Gates.Values)
-			.Concat(HitTargets.Values)
-			.Concat(Plungers.Values)
-			.Concat(Ramps.Values)
-			.Concat(Rubbers.Values)
-			.Concat(Spinners.Values)
-			.Concat(Surfaces.Values)
-			.Concat(Triggers.Values);
+			.Concat(_bumpers.Values)
+			.Concat(_flippers.Values)
+			.Concat(_gates.Values)
+			.Concat(_hitTargets.Values)
+			.Concat(_kickers.Values)
+			.Concat(_plungers.Values)
+			.Concat(_primitives.Values)
+			.Concat(_ramps.Values)
+			.Concat(_rubbers.Values)
+			.Concat(_spinners.Values)
+			.Concat(_surfaces.Values)
+			.Concat(_triggers.Values);
+
+		private void AddItem<TItem>(string name, TItem item, IDictionary<string, TItem> d, bool updateStorageIndices) where TItem : IItem
+		{
+			if (updateStorageIndices) {
+				item.StorageIndex = GameItems.Count();
+				Data.NumGameItems = item.StorageIndex + 1;
+			}
+			d[name] = item;
+		}
+
+		private void AddItem<TItem>(TItem item, ICollection<TItem> d, bool updateStorageIndices) where TItem : IItem
+		{
+			if (updateStorageIndices) {
+				item.StorageIndex = GameItems.Count();
+			}
+			d.Add(item);
+		}
+
+		private Dictionary<string, T> GetItemDictionary<T>() where T : IItem
+		{
+			if (typeof(T) == typeof(VPT.Bumper.Bumper)) {
+				return _bumpers as Dictionary<string, T>;
+			}
+			if (typeof(T) == typeof(VPT.DispReel.DispReel)) {
+				return _dispReels as Dictionary<string, T>;
+			}
+
+			if (typeof(T) == typeof(VPT.Flipper.Flipper)) {
+				return _flippers as Dictionary<string, T>;
+			}
+
+			if (typeof(T) == typeof(VPT.Gate.Gate)) {
+				return _gates as Dictionary<string, T>;
+			}
+
+			if (typeof(T) == typeof(VPT.HitTarget.HitTarget)) {
+				return _hitTargets as Dictionary<string, T>;
+			}
+
+			if (typeof(T) == typeof(VPT.Kicker.Kicker)) {
+				return _kickers as Dictionary<string, T>;
+			}
+
+			if (typeof(T) == typeof(VPT.Light.Light)) {
+				return _lights as Dictionary<string, T>;
+			}
+
+			if (typeof(T) == typeof(VPT.LightSeq.LightSeq)) {
+				return _lightSeqs as Dictionary<string, T>;
+			}
+
+			if (typeof(T) == typeof(VPT.Plunger.Plunger)) {
+				return _plungers as Dictionary<string, T>;
+			}
+
+			if (typeof(T) == typeof(VPT.Flasher.Flasher)) {
+				return _flashers as Dictionary<string, T>;
+			}
+
+			if (typeof(T) == typeof(VPT.Primitive.Primitive)) {
+				return _primitives as Dictionary<string, T>;
+			}
+
+			if (typeof(T) == typeof(VPT.Ramp.Ramp)) {
+				return _ramps as Dictionary<string, T>;
+			}
+
+			if (typeof(T) == typeof(VPT.Rubber.Rubber)) {
+				return _rubbers as Dictionary<string, T>;
+			}
+
+			if (typeof(T) == typeof(VPT.Spinner.Spinner)) {
+				return _spinners as Dictionary<string, T>;
+			}
+
+			if (typeof(T) == typeof(VPT.Surface.Surface)) {
+				return _surfaces as Dictionary<string, T>;
+			}
+
+			if (typeof(T) == typeof(VPT.TextBox.TextBox)) {
+				return _textBoxes as Dictionary<string, T>;
+			}
+
+			if (typeof(T) == typeof(VPT.Timer.Timer)) {
+				return _timers as Dictionary<string, T>;
+			}
+
+			if (typeof(T) == typeof(VPT.Trigger.Trigger)) {
+				return _triggers as Dictionary<string, T>;
+			}
+
+			return null;
+		}
+
+		private List<T> GetItemList<T>() {
+			if (typeof(T) == typeof(VPT.Decal.Decal)) {
+				return _decals as List<T>;
+			}
+
+			return null;
+		}
 
 		#endregion
+
+		public void Init(Table table)
+		{
+		}
+
+		/// <summary>
+		/// Adds a game item to the table.
+		/// </summary>
+		/// <param name="item">Game item instance</param>
+		/// <param name="updateStorageIndices">If set, re-computes the storage indices. Only needed when adding game items via the editor.</param>
+		/// <typeparam name="T">Game item type</typeparam>
+		/// <exception cref="ArgumentException">Whe type of game item is unknown</exception>
+		public void Add<T>(T item, bool updateStorageIndices = false) where T : IItem
+		{
+			var dict = GetItemDictionary<T>();
+			if (dict != null) {
+				AddItem(item.Name, item, dict, updateStorageIndices);
+
+			} else {
+				var list = GetItemList<T>();
+				if (list != null) {
+					AddItem(item, list, updateStorageIndices);
+
+				} else {
+					throw new ArgumentException("Unknown item type " + typeof(T) + ".");
+				}
+			}
+		}
+
+		/// <summary>
+		/// Replaces all game items of a list with new game items.
+		/// </summary>
+		///
+		/// <remarks>
+		/// This only applied to Decals, because they are the only game items
+		/// that don't have a name.
+		/// </remarks>
+		/// <param name="items">New list of game items</param>
+		/// <typeparam name="T">Game item type (only Decals)</typeparam>
+		/// <exception cref="ArgumentException">If not decals</exception>
+		public void ReplaceAll<T>(IEnumerable<T> items) where T : IItem
+		{
+			var list = GetItemList<T>();
+			if (list == null) {
+				throw new ArgumentException("Cannot set all " + typeof(T) + "s (only Decals so far).");
+			}
+			list.Clear();
+			list.AddRange(items);
+		}
+
+		/// <summary>
+		/// Checks whether a game item of a given type exists.
+		/// </summary>
+		/// <param name="name">Name of the game item</param>
+		/// <typeparam name="T">Type of the game item</typeparam>
+		/// <returns>True if the game item exists, false otherwise</returns>
+		public bool Has<T>(string name) where T : IItem => GetItemDictionary<T>().ContainsKey(name);
+
+
+		/// <summary>
+		/// Returns all game items of a given type.
+		/// </summary>
+		/// <typeparam name="TItem">Game item type</typeparam>
+		/// <returns>All game items stored in the table</returns>
+		/// <exception cref="ArgumentException">If invalid game type</exception>
+		public TItem[] GetAll<TItem>() where TItem : IItem
+		{
+			var dict = GetItemDictionary<TItem>();
+			if (dict != null) {
+				return dict.Values.ToArray();
+			}
+			var list = GetItemList<TItem>();
+			if (list != null) {
+				return list.ToArray();
+			}
+			throw new ArgumentException("Unknown item type " + typeof(TItem) + ".");
+		}
+
+		/// <summary>
+		/// Computes a new name for a game item.
+		/// </summary>
+		/// <param name="prefix">Prefix</param>
+		/// <typeparam name="T">Type of the game item</typeparam>
+		/// <returns>New name, a concatenation of the prefix and the next free index</returns>
+		public string GetNewName<T>(string prefix) where T : IItem
+		{
+			var n = 0;
+			var dict = GetItemDictionary<T>();
+			do {
+				var elementName = $"{prefix}{++n}";
+				if (!dict.ContainsKey(elementName)) {
+					return elementName;
+				}
+			} while (true);
+		}
+
+		/// <summary>
+		/// Removes a game item from the table.
+		/// </summary>
+		/// <param name="name">Name of the game item</param>
+		/// <typeparam name="T">Type of the game item</typeparam>
+		public void Remove<T>(string name) where T : IItem
+		{
+			var dict = GetItemDictionary<T>();
+			var removedStorageIndex = dict[name].StorageIndex;
+			var gameItems = GameItems;
+			foreach (var gameItem in gameItems) {
+				if (gameItem.StorageIndex > removedStorageIndex) {
+					gameItem.StorageIndex--;
+				}
+			}
+
+			Data.NumGameItems = gameItems.Count() - 1;
+			dict.Remove(name);
+		}
+
+		public TData[] GetAllData<TItem, TData>() where TItem : Item<TData> where TData : ItemData
+		{
+			var dict = GetItemDictionary<TItem>();
+			if (dict != null) {
+				return dict.Values.Select(d => d.Data).ToArray();
+			}
+			var list = GetItemList<TItem>();
+			if (list != null) {
+				return list.Select(d => d.Data).ToArray();
+			}
+			throw new ArgumentException("Unknown item type " + typeof(TItem) + ".");
+		}
+
 
 		#region Table Info
 		public string InfoAuthorEmail => TableInfo.ContainsKey("AuthorEmail") ? TableInfo["AuthorEmail"] : null;
@@ -149,8 +440,8 @@ namespace VisualPinball.Engine.VPT.Table
 
 		public Table(TableData data) : base(data)
 		{
-			_meshGenerator = new TableMeshGenerator(Data);
-			_hitGenerator = new TableHitGenerator(Data);
+			_meshGenerator = new TableMeshGenerator(this);
+			_hitGenerator = new TableHitGenerator(this);
 		}
 
 		public Table(BinaryReader reader) : this(new TableData(reader)) { }
@@ -160,9 +451,10 @@ namespace VisualPinball.Engine.VPT.Table
 			return _meshGenerator.GetRenderObjects(table, origin, asRightHanded);
 		}
 
-		public IEnumerable<HitObject> GetHitShapes() => _hitGenerator.GenerateHitObjects();
-		public HitPlane GeneratePlayfieldHit() => _hitGenerator.GeneratePlayfieldHit();
-		public HitPlane GenerateGlassHit() => _hitGenerator.GenerateGlassHit();
+		public HitObject[] GetHitShapes() => _hitGenerator.GenerateHitObjects(this).ToArray();
+
+		public HitPlane GeneratePlayfieldHit() => _hitGenerator.GeneratePlayfieldHit(this);
+		public HitPlane GenerateGlassHit() => _hitGenerator.GenerateGlassHit(this);
 
 		public void Save(string fileName)
 		{
@@ -177,11 +469,22 @@ namespace VisualPinball.Engine.VPT.Table
 				: Data.Materials.FirstOrDefault(m => m.Name == name);
 		}
 
+		public void SetTextureContainer(ITableResourceContainer<Texture> container)
+		{
+			Textures = container;
+		}
+
 		public Texture GetTexture(string name)
 		{
-			return name == null
+			var tex = name == null
 				? null
-				: Textures.ContainsKey(name.ToLower()) ? Textures[name.ToLower()] : null;
+				: Textures[name.ToLower()];
+			return tex;
+		}
+
+		public void SetSoundContainer(ITableResourceContainer<Sound.Sound> container)
+		{
+			Sounds = container;
 		}
 
 		public float GetScaleZ()
@@ -191,33 +494,33 @@ namespace VisualPinball.Engine.VPT.Table
 
 		public void SetupPlayfieldMesh()
 		{
-			if (Primitives.ContainsKey("playfield_mesh")) {
-				_meshGenerator.SetFromPrimitive(Primitives["playfield_mesh"]);
-				Primitives.Remove("playfield_mesh");
+			if (_primitives.ContainsKey("playfield_mesh")) {
+				_meshGenerator.SetFromPrimitive(_primitives["playfield_mesh"]);
+				_primitives.Remove("playfield_mesh");
 			}
 		}
 
 		public float GetSurfaceHeight(string surfaceName, float x, float y)
 		{
 			if (string.IsNullOrEmpty(surfaceName)) {
-				return Data.TableHeight;
+				return TableHeight;
 			}
 
-			if (Surfaces.ContainsKey(surfaceName)) {
-				return Data.TableHeight + Surfaces[surfaceName].Data.HeightTop;
+			if (_surfaces.ContainsKey(surfaceName)) {
+				return TableHeight + _surfaces[surfaceName].Data.HeightTop;
 			}
 
-			if (Ramps.ContainsKey(surfaceName)) {
-				return Data.TableHeight + Ramps[surfaceName].GetSurfaceHeight(x, y, this);
+			if (_ramps.ContainsKey(surfaceName)) {
+				return TableHeight + _ramps[surfaceName].GetSurfaceHeight(x, y, this);
 			}
 
 			Logger.Warn(
 				"[Table.getSurfaceHeight] Unknown surface {0}.\nAvailable surfaces: [ {1} ]\nAvailable ramps: [ {2} ]",
 				surfaceName,
-				string.Join(", ", Surfaces.Keys),
-				string.Join(", ", Ramps.Keys)
+				string.Join(", ", _surfaces.Keys),
+				string.Join(", ", _ramps.Keys)
 			);
-			return Data.TableHeight;
+			return TableHeight;
 		}
 
 		public int GetDetailLevel()

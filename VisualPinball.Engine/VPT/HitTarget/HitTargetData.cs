@@ -1,3 +1,19 @@
+// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 #region ReSharper
 // ReSharper disable UnassignedField.Global
 // ReSharper disable StringLiteralTypo
@@ -71,14 +87,17 @@ namespace VisualPinball.Engine.VPT.HitTarget
 		[BiffFloat("RSCT", Pos = 15)]
 		public float Scatter;
 
+		[TextureReference]
 		[BiffString("IMAG", Pos = 4)]
-		public string Image;
+		public string Image = string.Empty;
 
+		[MaterialReference]
 		[BiffString("MATR", Pos = 7)]
-		public string Material;
+		public string Material = string.Empty;
 
+		[MaterialReference]
 		[BiffString("MAPH", Pos = 26)]
-		public string PhysicsMaterial;
+		public string PhysicsMaterial = string.Empty;
 
 		[BiffInt("TRTY", Pos = 5)]
 		public int TargetType = VisualPinball.Engine.VPT.TargetType.DropTargetSimple;
@@ -105,6 +124,12 @@ namespace VisualPinball.Engine.VPT.HitTarget
 			   TargetType == VisualPinball.Engine.VPT.TargetType.DropTargetBeveled
 			|| TargetType == VisualPinball.Engine.VPT.TargetType.DropTargetFlatSimple
 			|| TargetType == VisualPinball.Engine.VPT.TargetType.DropTargetSimple;
+
+		public HitTargetData(string name, float x, float y) : base(StoragePrefix.GameItem)
+		{
+			Name = name;
+			Position = new Vertex3D(x, y, 0f);
+		}
 
 		#region BIFF
 

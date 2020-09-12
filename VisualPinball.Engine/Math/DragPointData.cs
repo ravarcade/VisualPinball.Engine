@@ -1,3 +1,19 @@
+// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 #region ReSharper
 // ReSharper disable UnassignedField.Global
 // ReSharper disable StringLiteralTypo
@@ -18,10 +34,10 @@ namespace VisualPinball.Engine.Math
 	public class DragPointData : BiffData
 	{
 		[BiffVertex("VCEN", Pos = 1, WriteAsVertex2D = true)]
-		public Vertex3D Vertex;
+		public Vertex3D Center;
 
 		[BiffFloat("POSZ", Pos = 2)]
-		public float PosZ { set => Vertex.Z = value; get => Vertex.Z; }
+		public float PosZ { set => Center.Z = value; get => Center.Z; }
 
 		[BiffBool("SMTH", Pos = 3)]
 		public bool IsSmooth;
@@ -45,7 +61,7 @@ namespace VisualPinball.Engine.Math
 
 		public override string ToString()
 		{
-			return $"DragPoint({Vertex.X}/{Vertex.Y}/{Vertex.Z}, {(IsSmooth ? "S" : "")}{(IsSlingshot ? "SS" : "")}{(HasAutoTexture ? "A" : "")})";
+			return $"DragPoint({Center.X}/{Center.Y}/{Center.Z}, {(IsSmooth ? "S" : "")}{(IsSlingshot ? "SS" : "")}{(HasAutoTexture ? "A" : "")})";
 		}
 
 		#region BIFF
@@ -55,9 +71,15 @@ namespace VisualPinball.Engine.Math
 			Init(typeof(DragPointData), Attributes);
 		}
 
+		public DragPointData(float x, float y) : base(null)
+		{
+			Center = new Vertex3D(x, y, 0f);
+			HasAutoTexture = true;
+		}
+
 		public DragPointData(DragPointData rf) : base(null)
 		{
-			Vertex = rf.Vertex;
+			Center = rf.Center;
 			PosZ = rf.PosZ;
 			IsSmooth = rf.IsSmooth;
 			IsSlingshot = rf.IsSlingshot;

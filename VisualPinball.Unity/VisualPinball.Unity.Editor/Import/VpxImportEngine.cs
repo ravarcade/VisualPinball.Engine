@@ -1,12 +1,26 @@
-﻿using System.IO;
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using System.IO;
 using NLog;
 using UnityEditor;
 using UnityEngine;
-using VisualPinball.Unity.Import;
-using VisualPinball.Unity.Import.Job;
 using Logger = NLog.Logger;
 
-namespace VisualPinball.Unity.Editor.Import
+namespace VisualPinball.Unity.Editor
 {
 	public static class VpxImportEngine
 	{
@@ -37,14 +51,14 @@ namespace VisualPinball.Unity.Editor.Import
 		{
 			// create root object
 			var rootGameObj = new GameObject();
-			var importer = rootGameObj.AddComponent<VpxImporter>();
+			var importer = rootGameObj.AddComponent<VpxConverter>();
 
 			// load table
 			var table = TableLoader.LoadTable(path);
 
 			Logger.Info("Importing Table\nInfoName={0}\nInfoAuthorName={1}", table.InfoName, table.InfoAuthorName);
 
-			importer.Import(Path.GetFileName(path), table, applyPatch, tableName);
+			importer.Convert(Path.GetFileName(path), table, applyPatch, tableName);
 
 			return rootGameObj;
 		}

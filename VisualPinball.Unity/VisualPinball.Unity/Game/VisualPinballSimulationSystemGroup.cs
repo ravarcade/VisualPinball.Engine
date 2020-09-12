@@ -1,24 +1,37 @@
-﻿using System;
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using NLog;
 using Unity.Entities;
 using Unity.Transforms;
 using VisualPinball.Engine.Common;
-using VisualPinball.Unity.Physics.SystemGroup;
-using VisualPinball.Unity.VPT.Ball;
 
-namespace VisualPinball.Unity.Game
+namespace VisualPinball.Unity
 {
 	/// <summary>
 	/// Main physics simulation system, executed once per frame.
 	/// </summary>
 	[UpdateBefore(typeof(TransformSystemGroup))]
-	public class VisualPinballSimulationSystemGroup : ComponentSystemGroup
+	internal class VisualPinballSimulationSystemGroup : ComponentSystemGroup
 	{
 		public double PhysicsDiffTime;
 		public double CurrentPhysicsTime => _currentPhysicsTime * (1.0 / PhysicsConstants.DefaultStepTime);
-
 		public uint TimeMsec;
 
 		public override IEnumerable<ComponentSystemBase> Systems => _systemsToUpdate;
@@ -37,6 +50,8 @@ namespace VisualPinball.Unity.Game
 		private BallRingCounterSystem _ballRingCounterSystem;
 		private UpdateAnimationsSystemGroup _updateAnimationsSystemGroup;
 		private TransformMeshesSystemGroup _transformMeshesSystemGroup;
+
+		private readonly List<Action> _afterBallQueues = new List<Action>();
 
 		private const TimingMode Timing = TimingMode.UnityTime;
 
@@ -72,6 +87,10 @@ namespace VisualPinball.Unity.Game
 		protected override void OnUpdate()
 		{
 			_createBallEntityCommandBufferSystem.Update();
+			foreach (var action in _afterBallQueues) {
+				action();
+			}
+			_afterBallQueues.Clear();
 
 			//const int startTimeUsec = 0;
 			var initialTimeUsec = GetTargetTime();
@@ -138,6 +157,11 @@ namespace VisualPinball.Unity.Game
 			Atleast60,
 			Locked60
 		};
+
+		public void QueueAfterBallCreation(Action action)
+		{
+			_afterBallQueues.Add(action);
+		}
 	}
 
 }

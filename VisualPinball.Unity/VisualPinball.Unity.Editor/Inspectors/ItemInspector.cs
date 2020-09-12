@@ -1,27 +1,41 @@
+// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using System;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Math;
-using VisualPinball.Unity.VPT;
-using VisualPinball.Unity.VPT.Surface;
-using VisualPinball.Unity.VPT.Table;
-using VisualPinball.Unity.Extensions;
-using System;
+using VisualPinball.Engine.VPT.Surface;
 
-
-namespace VisualPinball.Unity.Editor.Inspectors
+namespace VisualPinball.Unity.Editor
 {
 	public abstract class ItemInspector : UnityEditor.Editor
     {
-		protected TableBehavior _table;
-		protected SurfaceBehavior _surface;
+		protected TableAuthoring _table;
+		protected SurfaceAuthoring _surface;
 
 		protected string[] _allMaterials = new string[0];
 		protected string[] _allTextures = new string[0];
 
+		public static event Action<IIdentifiableItemAuthoring, string, string> ItemRenamed;
+
 		protected virtual void OnEnable()
 		{
-			_table = (target as MonoBehaviour)?.gameObject.GetComponentInParent<TableBehavior>();
+			_table = (target as MonoBehaviour)?.gameObject.GetComponentInParent<TableAuthoring>();
 			PopulateDropDownOptions();
 			EditorApplication.hierarchyChanged += OnHierarchyChange;
 		}
@@ -43,27 +57,27 @@ namespace VisualPinball.Unity.Editor.Inspectors
 				Array.Sort(_allMaterials, 1, _allMaterials.Length - 1);
 			}
 			if (_table.Textures != null) {
-				_allTextures = new string[_table.Textures.Length + 1];
+				_allTextures = new string[_table.Textures.Count + 1];
 				_allTextures[0] = "- none -";
-				for (int i = 0; i < _table.Textures.Length; i++) {
-					_allTextures[i + 1] = _table.Textures[i].Name;
-				}
+				_table.Textures.Select(tex => tex.Name).ToArray().CopyTo(_allTextures, 1);
 				Array.Sort(_allTextures, 1, _allTextures.Length - 1);
 			}
 		}
 
-		protected virtual void OnHierarchyChange()
+		private void OnHierarchyChange()
 		{
-			if (target is MonoBehaviour bh && target is IIdentifiableItemBehavior item) {
+			if (target is MonoBehaviour bh && target is IIdentifiableItemAuthoring item && bh != null) {
 				if (item.Name != bh.gameObject.name) {
+					var oldName = item.Name;
 					item.Name = bh.gameObject.name;
+					ItemRenamed?.Invoke(item, oldName, bh.gameObject.name);
 				}
 			}
 		}
 
 		protected void OnPreInspectorGUI()
 		{
-			var item = (target as IEditableItemBehavior);
+			var item = (target as IEditableItemAuthoring);
 			if (item == null) return;
 
 			EditorGUI.BeginChangeCheck();
@@ -78,7 +92,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 		public override void OnInspectorGUI()
 		{
-			var item = target as IEditableItemBehavior;
+			var item = target as IEditableItemAuthoring;
 			if (item == null) return;
 
 			GUILayout.Space(10);
@@ -190,21 +204,21 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			var mb = target as MonoBehaviour;
 			if (_surface == null && _table != null) {
 				string currentFieldName = field;
-				if (currentFieldName != null && _table.Table.Surfaces.ContainsKey(currentFieldName)) {
-					_surface = _table.gameObject.GetComponentsInChildren<SurfaceBehavior>(true)
+				if (currentFieldName != null && _table.Table.Has<Surface>(currentFieldName)) {
+					_surface = _table.gameObject.GetComponentsInChildren<SurfaceAuthoring>(true)
 						.FirstOrDefault(s => s.name == currentFieldName);
 				}
 			}
 
 			EditorGUI.BeginChangeCheck();
-			_surface = (SurfaceBehavior)EditorGUILayout.ObjectField(label, _surface, typeof(SurfaceBehavior), true);
+			_surface = (SurfaceAuthoring)EditorGUILayout.ObjectField(label, _surface, typeof(SurfaceAuthoring), true);
 			if (EditorGUI.EndChangeCheck()) {
 				FinishEdit(label, dirtyMesh);
 				field = _surface != null ? _surface.name : "";
 			}
 		}
 
-		protected void DropDownField<T>(string label, ref T field, string[] optionStrings, T[] optionValues, bool dirtyMesh = true) where T : System.IEquatable<T>
+		protected void DropDownField<T>(string label, ref T field, string[] optionStrings, T[] optionValues, bool dirtyMesh = true) where T : IEquatable<T>
 		{
 			if (optionStrings == null || optionValues == null || optionStrings.Length != optionValues.Length) {
 				return;
@@ -228,6 +242,12 @@ namespace VisualPinball.Unity.Editor.Inspectors
 		protected void TextureField(string label, ref string field, bool dirtyMesh = true)
 		{
 			if (_table == null) return;
+
+			// if the field is set, but the tex isn't in our list, maybe it was added after this
+			// inspector was instantiated, so re-grab our options from the table data
+			if (!string.IsNullOrEmpty(field) && !_allTextures.Contains(field)) {
+				PopulateDropDownOptions();
+			}
 
 			int selectedIndex = 0;
 			for (int i = 0; i < _allTextures.Length; i++) {
@@ -254,7 +274,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 			DropDownField(label, ref field, _allMaterials, _allMaterials, dirtyMesh);
 			if (_allMaterials.Length > 0 && field == _allMaterials[0]) {
-				field = ""; // don't store the none value string in our data 
+				field = ""; // don't store the none value string in our data
 			}
 		}
 
@@ -262,8 +282,8 @@ namespace VisualPinball.Unity.Editor.Inspectors
 		{
 			string undoLabel = $"[{target?.name}] Edit {label}";
 			if (dirtyMesh) {
-				// set dirty flag true before recording object state for the undo so meshes will rebuild after the undo as well 
-				var item = (target as IEditableItemBehavior);
+				// set dirty flag true before recording object state for the undo so meshes will rebuild after the undo as well
+				var item = (target as IEditableItemAuthoring);
 				if (item != null) {
 					item.MeshDirty = true;
 					Undo.RecordObject(this, undoLabel);

@@ -1,4 +1,20 @@
-﻿using NLog;
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using NLog;
 using NLog.Targets;
 using NUnit.Framework;
 using VisualPinball.Engine.Game;
@@ -19,11 +35,6 @@ namespace VisualPinball.Engine.Test.Test
 			config.AddRule(LogLevel.Trace, LogLevel.Fatal, logConsole);
 			LogManager.Configuration = config;
 			Logger = LogManager.GetCurrentClassLogger();
-		}
-
-		protected static Ball CreateBall(Player player, float x, float y, float z, float vx = 0, float vy = 0, float vz = 0)
-		{
-			return player.CreateBall(new TestBallCreator(x, y, z, vx, vy, vz));
 		}
 	}
 
@@ -53,7 +64,7 @@ namespace VisualPinball.Engine.Test.Test
 
 		public Vertex3D GetBallCreationVelocity(Table table) => _vel;
 
-		public void OnBallCreated(PlayerPhysics physics, Ball ball)
+		public void OnBallCreated(Ball ball)
 		{
 			// do nothing
 		}

@@ -1,15 +1,28 @@
-﻿using System;
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Math;
-using VisualPinball.Unity.Extensions;
-using VisualPinball.Unity.VPT;
-using VisualPinball.Unity.Editor.Utils;
 using Object = UnityEngine.Object;
 
-namespace VisualPinball.Unity.Editor.DragPoint
+namespace VisualPinball.Unity.Editor
 {
 	public delegate void OnDragPointPositionChange(Vector3 newPosition);
 
@@ -18,7 +31,7 @@ namespace VisualPinball.Unity.Editor.DragPoint
 		/// <summary>
 		/// Authoring item
 		/// </summary>
-		public IEditableItemBehavior Editable { get; private set; }
+		public IEditableItemAuthoring Editable { get; private set; }
 
 		/// <summary>
 		/// Authoring item as IDragPointsEditable
@@ -74,8 +87,8 @@ namespace VisualPinball.Unity.Editor.DragPoint
 		/// <exception cref="ArgumentException"></exception>
 		public DragPointsHandler(Object target)
 		{
-			Editable = target as IEditableItemBehavior
-			    ?? throw new ArgumentException("Target must extend `IEditableItemBehavior`.");
+			Editable = target as IEditableItemAuthoring
+			    ?? throw new ArgumentException("Target must extend `IEditableItemAuthoring`.");
 
 			DragPointEditable = target as IDragPointsEditable
 			    ?? throw new ArgumentException("Target must extend `IDragPointsEditable`.");
@@ -132,11 +145,11 @@ namespace VisualPinball.Unity.Editor.DragPoint
 			};
 
 			var newIdx = CurveTravellerControlPointIdx + 1;
-			float ratio = (float)newIdx / (DragPointEditable.GetDragPoints().Length - 1);
+			float ratio = (float)newIdx / DragPointEditable.GetDragPoints().Length;
 			var dragPointPosition = Transform.worldToLocalMatrix.MultiplyPoint(CurveTravellerPosition);
 			dragPointPosition -= DragPointEditable.GetEditableOffset();
 			dragPointPosition -= DragPointEditable.GetDragPointOffset(ratio);
-			dragPoint.Vertex = dragPointPosition.ToVertex3D();
+			dragPoint.Center = dragPointPosition.ToVertex3D();
 			var dragPoints = DragPointEditable.GetDragPoints().ToList();
 			dragPoints.Insert(newIdx, dragPoint);
 			DragPointEditable.SetDragPoints(dragPoints.ToArray());
@@ -316,7 +329,7 @@ namespace VisualPinball.Unity.Editor.DragPoint
 
 			//Setup Screen positions & controlID for control points (in case of modification of drag points coordinates outside)
 			foreach (var controlPoint in ControlPoints) {
-				controlPoint.WorldPos = controlPoint.DragPoint.Vertex.ToUnityVector3();
+				controlPoint.WorldPos = controlPoint.DragPoint.Center.ToUnityVector3();
 				controlPoint.WorldPos += DragPointEditable.GetEditableOffset();
 				controlPoint.WorldPos += DragPointEditable.GetDragPointOffset(controlPoint.IndexRatio);
 				controlPoint.WorldPos = Transform.localToWorldMatrix.MultiplyPoint(controlPoint.WorldPos);

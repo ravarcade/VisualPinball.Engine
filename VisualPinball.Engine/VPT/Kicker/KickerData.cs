@@ -1,3 +1,19 @@
+// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 #region ReSharper
 // ReSharper disable UnassignedField.Global
 // ReSharper disable StringLiteralTypo
@@ -45,11 +61,12 @@ namespace VisualPinball.Engine.VPT.Kicker
 		[BiffFloat("KORI", Pos = 13)]
 		public float Orientation = 0.0f;
 
+		[MaterialReference]
 		[BiffString("MATR", Pos = 5)]
-		public string Material;
+		public string Material = string.Empty;
 
 		[BiffString("SURF", Pos = 6)]
-		public string Surface;
+		public string Surface = string.Empty;
 
 		[BiffBool("FATH", Pos = 14)]
 		public bool FallThrough = false;
@@ -58,13 +75,19 @@ namespace VisualPinball.Engine.VPT.Kicker
 		public bool IsEnabled = true;
 
 		[BiffBool("LEMO", Pos = 15)]
-		public bool LegacyMode = false;
+		public bool LegacyMode = true;
 
 		[BiffBool("TMON", Pos = 3)]
 		public bool IsTimerEnabled;
 
 		[BiffInt("TMIN", Pos = 4)]
 		public int TimerInterval;
+
+		public KickerData(string name, float x, float y) : base(StoragePrefix.GameItem)
+		{
+			Name = name;
+			Center = new Vertex2D(x, y);
+		}
 
 		#region BIFF
 

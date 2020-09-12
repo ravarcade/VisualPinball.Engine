@@ -1,4 +1,20 @@
-﻿using System.Linq;
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using System.Linq;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 
@@ -8,12 +24,14 @@ namespace VisualPinball.Engine.VPT.Table
 	{
 		public bool HasMeshAsPlayfield => _playfield != null;
 
+		private readonly Table _table;
 		private readonly TableData _data;
 		private Primitive.Primitive _playfield;
 
-		public TableMeshGenerator(TableData data)
+		public TableMeshGenerator(Table table)
 		{
-			_data = data;
+			_data = table.Data;
+			_table = table;
 		}
 
 		public RenderObjectGroup GetRenderObjects(Table table, Origin origin, bool asRightHanded = true)
@@ -32,10 +50,10 @@ namespace VisualPinball.Engine.VPT.Table
 		private RenderObject GetFromTableDimensions(bool asRightHanded, PbrMaterial material)
 		{
 			var rgv = new[] {
-				new Vertex3DNoTex2(_data.Left, _data.Top, _data.TableHeight),
-				new Vertex3DNoTex2(_data.Right, _data.Top, _data.TableHeight),
-				new Vertex3DNoTex2(_data.Right, _data.Bottom, _data.TableHeight),
-				new Vertex3DNoTex2(_data.Left, _data.Bottom, _data.TableHeight),
+				new Vertex3DNoTex2(_data.Left, _data.Top, _table.TableHeight),
+				new Vertex3DNoTex2(_data.Right, _data.Top, _table.TableHeight),
+				new Vertex3DNoTex2(_data.Right, _data.Bottom, _table.TableHeight),
+				new Vertex3DNoTex2(_data.Left, _data.Bottom, _table.TableHeight),
 			};
 			var mesh = new Mesh {
 				Name = _data.Name,
@@ -49,7 +67,7 @@ namespace VisualPinball.Engine.VPT.Table
 				rgv[i].Nz = 1.0f;
 
 				rgv[i].Tv = (i & 2) > 0 ? 1.0f : 0.0f;
-				rgv[i].Tu = (i == 1 || i == 2) ? 1.0f : 0.0f;
+				rgv[i].Tu = i == 1 || i == 2 ? 1.0f : 0.0f;
 			}
 
 			var offs = 0;

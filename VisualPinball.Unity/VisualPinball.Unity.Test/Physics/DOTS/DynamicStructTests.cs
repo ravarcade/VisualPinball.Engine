@@ -1,4 +1,20 @@
-﻿using System.Collections.Generic;
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using System.Collections.Generic;
 using NUnit.Framework;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
@@ -7,9 +23,8 @@ using Unity.Mathematics;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Physics;
 using VisualPinball.Engine.VPT;
-using VisualPinball.Unity.Physics.Collision;
 
-namespace VisualPinball.Unity.Test.Physics.DOTS
+namespace VisualPinball.Unity.Test
 {
 	[TestFixture]
 	public class DynamicStructTests
@@ -47,18 +62,6 @@ namespace VisualPinball.Unity.Test.Physics.DOTS
 			//
 			// Assert.AreEqual(hit.Rgv[0].ToUnityFloat3(), coll.Value._rgv[0]);
 			// Assert.AreEqual(hit.Rgv[1].ToUnityFloat3(), coll.Value._rgv[1]);
-		}
-
-		[Test]
-		public void ShouldSerializePoly3DCollider()
-		{
-			var colliderBlob = ColliderBlob.CreateBlobAssetReference( new List<HitObject> {
-				new Hit3DPoly(new[] { new Vertex3D(1, 2, 3), new Vertex3D(4, 5, 6) }, ItemType.Table)
-			}, 0, 0);
-
-			ref var poly3DCollider = ref colliderBlob.Value.Colliders[0].Value;
-
-			Assert.AreEqual("Poly3DCollider, rgv[0] = float3(1f, 2f, 3f)", Unity.Physics.Collider.Collider.ToString(ref poly3DCollider));
 		}
 	}
 
@@ -98,7 +101,7 @@ namespace VisualPinball.Unity.Test.Physics.DOTS
 
 		public static void Create(BlobBuilder builder, ref BlobPtr<Collider> dest, float2 v1, float2 v2, float zLow, float zHigh)
 		{
-			ref var linePtr = ref UnsafeUtilityEx.As<BlobPtr<Collider>, BlobPtr<LineCollider>>(ref dest);
+			ref var linePtr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<LineCollider>>(ref dest);
 			ref var collider = ref builder.Allocate(ref linePtr);
 			collider.Init(v1, v2, zLow, zHigh);
 		}
@@ -107,7 +110,7 @@ namespace VisualPinball.Unity.Test.Physics.DOTS
 		{
 			var dest = default(LineCollider);
 			dest.Init(v1, v2, zLow, zHigh);
-			return UnsafeUtilityEx.As<LineCollider, Collider>(ref dest);
+			return UnsafeUtility.As<LineCollider, Collider>(ref dest);
 		}
 
 		private void Init(float2 v1, float2 v2, float zLow, float zHigh)
@@ -136,7 +139,7 @@ namespace VisualPinball.Unity.Test.Physics.DOTS
 
 		public static void Create(BlobBuilder builder, ref BlobPtr<Collider> dest, float3 pos)
 		{
-			ref var linePtr = ref UnsafeUtilityEx.As<BlobPtr<Collider>, BlobPtr<PointCollider>>(ref dest);
+			ref var linePtr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<PointCollider>>(ref dest);
 			ref var collider = ref builder.Allocate(ref linePtr);
 			collider.Init(pos);
 		}

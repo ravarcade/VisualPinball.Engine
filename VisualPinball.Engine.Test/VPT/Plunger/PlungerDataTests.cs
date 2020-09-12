@@ -1,4 +1,20 @@
-﻿using FluentAssertions;
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using FluentAssertions;
 using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT;
@@ -12,8 +28,8 @@ namespace VisualPinball.Engine.Test.VPT.Plunger
 		public void ShouldReadPlungerData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Plunger);
-			ValidatePlungerData1(table.Plungers["Plunger1"].Data);
-			ValidatePlungerData2(table.Plungers["Plunger2"].Data);
+			ValidatePlungerData1(table.Plunger("Plunger1").Data);
+			ValidatePlungerData2(table.Plunger("Plunger2").Data);
 		}
 
 		[Test]
@@ -23,8 +39,8 @@ namespace VisualPinball.Engine.Test.VPT.Plunger
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Plunger);
 			table.Save(tmpFileName);
 			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
-			ValidatePlungerData1(writtenTable.Plungers["Plunger1"].Data);
-			ValidatePlungerData2(writtenTable.Plungers["Plunger2"].Data);
+			ValidatePlungerData1(writtenTable.Plunger("Plunger1").Data);
+			ValidatePlungerData2(writtenTable.Plunger("Plunger2").Data);
 		}
 
 		private static void ValidatePlungerData1(PlungerData data)

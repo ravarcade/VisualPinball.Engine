@@ -1,4 +1,20 @@
-﻿﻿using FluentAssertions;
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+﻿using FluentAssertions;
  using NUnit.Framework;
  using VisualPinball.Engine.Test.Test;
  using VisualPinball.Engine.VPT.Primitive;
@@ -12,7 +28,7 @@
 		public void ShouldReadPrimitiveData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Primitive);
-			ValidatePrimitiveData(table.Primitives["Cube"].Data);
+			ValidatePrimitiveData(table.Primitive("Cube").Data);
 		}
 
 		[Test]
@@ -22,7 +38,7 @@
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Primitive);
 			new TableWriter(table).WriteTable(tmpFileName);
 			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
-			ValidatePrimitiveData(writtenTable.Primitives["Cube"].Data);
+			ValidatePrimitiveData(writtenTable.Primitive("Cube").Data);
 		}
 
 		private static void ValidatePrimitiveData(PrimitiveData data)
